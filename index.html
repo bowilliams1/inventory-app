@@ -863,7 +863,7 @@ body{font-family:'Rajdhani',sans-serif;background:var(--black);color:var(--white
 // ⚠️  IMPORTANT: After redeploying Apps Script, update this URL.
 // To keep the SAME URL: Deploy → Manage deployments → edit pencil → New version → Deploy
 // To get new URL: Deploy → New deployment (then update this line and re-upload to GitHub)
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyh56DfGpdH_GN-t9ckuHyS-RHpAezPxhDE73FBg7mwvH_EvDrdAqrXurrrZA8VXaFisQ/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxl1fj5ogM-b8evPXTR2CMvug90n4VJ9FfS8JOcMt9zQB-VbfeWeJoACmG5fy-xeI56/exec";
 
 const PASSWORDS = { admin:"admin2025", manager:"manager2025", production:"production2025" };
 
@@ -995,7 +995,13 @@ async function loadAll() {
   syncStatus("busy","Loading…");
   try {
     const r = await api({action:"getAll"});
-    if(r?.ok) { data=r; syncStatus("ok","Live · synced just now"); renderAll(); }
+    if(r?.ok) {
+      data=r;
+      // Handle both old API (returns 'closures') and new API (returns 'jugs')
+      data.jugs = data.jugs || data.closures || [];
+      syncStatus("ok","Live · synced just now");
+      renderAll();
+    }
     else throw new Error(r?.error||"Unknown error");
   } catch(e) { syncStatus("err","Can't connect — check your Script URL"); loadOffline(); }
 }
@@ -1904,18 +1910,20 @@ async function pinPress(k) {
 async function doPunch(punchType) {
   const labels={in:"Clocked in",lunch_out:"Lunch started",lunch_in:"Back from lunch",out:"Clocked out"};
   toast(`✓ ${labels[punchType]}`);
-  if(tcTimeCard) {
-    const now=new Date();
-    const timeStr=now.toLocaleTimeString();
-    if(!tcTimeCard.rows) tcTimeCard.rows=[];
-    const todayStr=now.toISOString().slice(0,10);
-    let todayRow=tcTimeCard.rows.find(r=>r.date===todayStr);
-    if(!todayRow){ todayRow={date:todayStr,clockIn:"",lunchOut:"",lunchIn:"",clockOut:"",totalHrs:""}; tcTimeCard.rows.push(todayRow); }
-    if(punchType==="in")         { todayRow.clockIn=timeStr; tcTimeCard.currentStatus="clocked_in"; }
-    if(punchType==="lunch_out")  { todayRow.lunchOut=timeStr; tcTimeCard.currentStatus="at_lunch"; }
-    if(punchType==="lunch_in")   { todayRow.lunchIn=timeStr; tcTimeCard.currentStatus="clocked_in"; }
-    if(punchType==="out")        { todayRow.clockOut=timeStr; tcTimeCard.currentStatus="clocked_out"; }
+  // Always initialize if null — never let null block the clock flow
+  if(!tcTimeCard) {
+    tcTimeCard={rows:[],currentStatus:"not_in",today:new Date().toISOString().slice(0,10)};
   }
+  const now=new Date();
+  const timeStr=now.toLocaleTimeString();
+  if(!tcTimeCard.rows) tcTimeCard.rows=[];
+  const todayStr=now.toISOString().slice(0,10);
+  let todayRow=tcTimeCard.rows.find(r=>r.date===todayStr);
+  if(!todayRow){ todayRow={date:todayStr,clockIn:"",lunchOut:"",lunchIn:"",clockOut:"",totalHrs:""}; tcTimeCard.rows.push(todayRow); }
+  if(punchType==="in")         { todayRow.clockIn=timeStr; tcTimeCard.currentStatus="clocked_in"; }
+  if(punchType==="lunch_out")  { todayRow.lunchOut=timeStr; tcTimeCard.currentStatus="at_lunch"; }
+  if(punchType==="lunch_in")   { todayRow.lunchIn=timeStr; tcTimeCard.currentStatus="clocked_in"; }
+  if(punchType==="out")        { todayRow.clockOut=timeStr; tcTimeCard.currentStatus="clocked_out"; }
   renderTimeClock(); if(deskView==="timeclock") renderDesktopView("timeclock");
   if(!cfg()) return;
   try { await api({action:"timePunch",name:tcEmployee.name,punchType}); } catch(e){}
