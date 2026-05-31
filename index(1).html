@@ -1001,6 +1001,16 @@ async function loadAll() {
       data=r;
       // Handle both old API (returns 'closures') and new API (returns 'jugs')
       data.jugs = data.jugs || data.closures || [];
+      // Merge image URLs from sheet into ORDER_ITEMS (if Image_URL column exists in Bo Order tab)
+      if(data.boOrderItems && data.boOrderItems.length > 0) {
+        data.boOrderItems.forEach(sheetItem => {
+          const appItem = ORDER_ITEMS.find(o => o.name === sheetItem.name);
+          if(appItem && sheetItem.imageUrl) {
+            appItem.imageUrl = sheetItem.imageUrl;
+            console.log("[BO ORDER] Image URL loaded from sheet for:", sheetItem.name);
+          }
+        });
+      }
       syncStatus("ok","Live · synced just now");
       renderAll();
     }
@@ -1437,11 +1447,16 @@ function renderOrders() {
   let h=`<div class="sh">Quick Request</div>
   <div class="order-grid">
     ${ORDER_ITEMS.map((item,i)=>{
-      const asin=(item.url||"").match(/\/dp\/([A-Z0-9]{10})/)?.[1]||"";
-      const imgUrl=asin?`https://images-na.ssl-images-amazon.com/images/P/${asin}.01.L.jpg`:"";
+      // Image_URL from sheet only. Amazon product page URLs are NOT image URLs.
+      const imageUrl = (item.imageUrl || "").trim();
+      if(imageUrl) {
+        console.log("[BO ORDER] Image: using Image_URL from sheet for:", item.name, "->", imageUrl);
+      } else {
+        console.log("[BO ORDER] Image: no Image_URL — showing emoji for:", item.name);
+      }
       return `<div class="order-tile" onclick="openOrderModal(${i})">
-        ${imgUrl
-          ? `<div class="ot-img-wrap"><img src="${imgUrl}" class="ot-img" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><span class="ot-icon" style="display:none">${item.emoji}</span></div>`
+        ${imageUrl
+          ? `<div class="ot-img-wrap"><img src="${imageUrl}" class="ot-img" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><span class="ot-icon" style="display:none">${item.emoji}</span></div>`
           : `<div class="ot-icon">${item.emoji}</div>`}
         <div class="ot-name">${item.name}</div>
       </div>`;
@@ -1548,7 +1563,7 @@ function renderDesktopView(view) {
   } else if(view==="jugs") {
     html=`<div style="max-width:800px">
       <div class="sh">Jugs & Caps</div>
-      <div class="card">${(data.jugs||[]).map(i=>sectionItemHTML(i,"closures","Jugs, Caps",true)).join("")}</div>
+      <div class="card">${(data.jugs||[]).map(i=>sectionItemHTML(i,"jugs","Jugs, Caps",true)).join("")}</div>
       ${role==="admin"?`<div class="aform"><h3>Add Item</h3><div class="ff"><label>Name</label><input id="clo-name" placeholder="Item name"></div><div class="frow"><div class="ff"><label>Size</label><input id="clo-size"></div><div class="ff"><label>Qty</label><input id="clo-qty" type="number" min="0" placeholder="0"></div></div><button class="badd" onclick="addItemAction('Jugs, Caps','jugs','clo')">Add Item</button></div>`:""}
     </div>`;
   } else if(view==="bags") {
@@ -1662,11 +1677,16 @@ async function commitEdit(dataKey, row, sheetName) {
   const val=Math.max(0,parseInt(el.value)||0);
   const arr=getDataArr(dataKey);
   const item=arr?.find(i=>i.row===row);
+  console.log("[EDIT] dataKey="+dataKey+" row="+row+" newQty="+val+" itemFound="+(!!item));
   if(item) item.qty=val;
   renderPage(); if(deskView) renderDesktopView(deskView);
   if(!cfg()) return;
   syncStatus("busy","Saving…");
-  try { await api({action:"setQtyDirect",sheet:sheetName,row,qty:val,col:3}); syncStatus("ok","Saved ✓"); }
+  try {
+    console.log("[EDIT] setQtyDirect sheet="+sheetName+" row="+row+" qty="+val);
+    await api({action:"setQtyDirect",sheet:sheetName,row,qty:val}); // col not passed; Apps Script picks correct column
+    syncStatus("ok","Saved ✓");
+  }
   catch(e){ syncStatus("err","Save failed"); }
 }
 
@@ -1694,10 +1714,17 @@ async function commitPallet(row) {
 //  QUANTITY ACTIONS
 // ═══════════════════════════════════════════════════════════
 async function chg(sheetName, dataKey, row, delta, name, size) {
+  console.log("[CHG] sheet="+sheetName+" dataKey="+dataKey+" row="+row+" delta="+delta+" name="+name);
   const arr=getDataArr(dataKey);
   const item=arr?.find(i=>i.row===row);
-  if(!item){ toast("Item not found — try refreshing"); return; }
+  if(!item){
+    console.error("[CHG] Item not found. dataKey="+dataKey+" row="+row+
+      " arr keys="+(arr?arr.map(i=>i.row).join(","):"undefined"));
+    toast("Item not found — try refreshing"); return;
+  }
+  const oldQty = item.qty;
   item.qty=Math.max(0,item.qty+delta);
+  console.log("[CHG] "+name+": "+oldQty+" → "+item.qty+" (delta "+delta+")");
   toast((delta>0?"+ ":"− ")+Math.abs(delta).toLocaleString()+" × "+name);
   renderPage(); if(deskView) renderDesktopView(deskView);
   if(!cfg()) return;
@@ -1973,41 +2000,56 @@ function openOrderModal(idx) {
 }
 function closeOrderModal() { document.getElementById("oqModal").classList.remove("on"); pendingOrderItem=null; }
 
-async function confirmOrder() {
-  if(!pendingOrderItem) return;
-  // Capture item reference BEFORE closeOrderModal() sets pendingOrderItem to null
-  const orderItem = pendingOrderItem;
-  const qty = parseInt(document.getElementById("oq-qty").value)||1;
-  const note = document.getElementById("oq-note").value||"";
-  closeOrderModal(); // safe now — we already captured orderItem above
+// ── SHARED ORDER SUBMISSION ─────────────────────────────────
+// Both Quick Request and Manual Request call this exact function.
+async function submitOrderRequest(itemName, url, qty, note) {
+  console.log("[BO ORDER] Submit:", {itemName, qty});
+
+  // Add to local pending immediately
   if(!data.orders) data.orders=[];
-  data.orders.push({row:Date.now(),itemName:orderItem.name,url:orderItem.url,qty,note,status:"pending",requestedAt:new Date()});
+  data.orders.push({row:Date.now(),itemName,url:url||"",qty:qty||1,note:note||"",status:"pending",requestedAt:new Date()});
   renderOrders(); if(deskView==="orders") renderDesktopView("orders"); updateDeskPendingBadge();
-  if(!cfg()){ toast("Not connected to Google Sheets"); return; }
+
+  if(!cfg()) { console.warn("[BO ORDER] Not connected"); toast("Saved locally — not connected to Google Sheets"); return; }
+
+  console.log("[BO ORDER] Calling API...");
+  let r;
   try {
-    const r=await api({action:"addOrder",itemName:orderItem.name,url:orderItem.url,qty,note});
-    if(!r){ toast("No response from server"); return; }
-    if(!r.ok){ toast("Error: "+(r.error||"unknown")); return; }
-    if(r.emailSent) toast("✓ Request saved + email sent to bowilliams@boshchemical.com");
-    else if(r.emailError) toast("Saved to sheet — email error: "+r.emailError);
-    else toast("✓ Request saved to Order_Requests sheet");
-  } catch(e){ toast("Failed: "+e.message); }
+    r = await api({action:"addOrder",itemName,url:url||"",qty:qty||1,note:note||""});
+    console.log("[BO ORDER] API response:", JSON.stringify(r));
+  } catch(e) {
+    console.error("[BO ORDER] Network error:", e.message);
+    toast("Network error — check connection");
+    return;
+  }
+
+  if(!r) { console.error("[BO ORDER] No response"); toast("No response from server — check Apps Script deployment"); return; }
+  if(!r.ok) { console.error("[BO ORDER] Error:", r.error); toast("Error: "+(r.error||"unknown")); return; }
+
+  if(r.emailSent) { console.log("[BO ORDER] Email sent OK"); toast("✓ Request saved + email sent to bowilliams@boshchemical.com"); }
+  else if(r.emailError) { console.warn("[BO ORDER] Email failed:", r.emailError); toast("Saved to sheet — email failed: "+r.emailError); }
+  else { toast("✓ Saved to Order_Requests sheet"); }
+}
+
+async function confirmOrder() {
+  if(!pendingOrderItem) { console.error("[BO ORDER] pendingOrderItem is null"); return; }
+  const orderItem = pendingOrderItem;  // capture BEFORE closeOrderModal sets it to null
+  const qty  = parseInt(document.getElementById("oq-qty")?.value) || 1;
+  const note = document.getElementById("oq-note")?.value || "";
+  console.log("[BO ORDER] Quick request:", orderItem.name, "qty:", qty);
+  closeOrderModal();  // now safe — orderItem is captured
+  await submitOrderRequest(orderItem.name, orderItem.url, qty, note);
 }
 
 async function submitManualOrder() {
-  const name=getFormVal("man-name").trim();
-  const url=getFormVal("man-url").trim();
-  const qty=parseInt(getFormVal("man-qty"))||1;
-  const note=getFormVal("man-note").trim();
-  if(!name){ toast("Describe what you need"); return; }
-  toast(`✓ Manual request sent`);
-  if(!data.orders) data.orders=[];
-  data.orders.push({row:Date.now(),itemName:name,url,qty,note,status:"pending",requestedAt:new Date()});
-  renderOrders(); if(deskView==="orders") renderDesktopView("orders"); updateDeskPendingBadge();
-  if(!cfg()) return;
-  try { await api({action:"addOrder",itemName:name,url,qty,note}); } catch(e){}
+  const name = getFormVal("man-name").trim();
+  const url  = getFormVal("man-url").trim();
+  const qty  = parseInt(getFormVal("man-qty")) || 1;
+  const note = getFormVal("man-note").trim();
+  if(!name) { toast("Describe what you need"); return; }
+  console.log("[BO ORDER] Manual request:", name, "qty:", qty);
+  await submitOrderRequest(name, url, qty, note);
 }
-
 async function markArrived(row) {
   if(!data.orders) return;
   const item=data.orders.find(o=>o.row===row);
@@ -2021,7 +2063,14 @@ async function markArrived(row) {
 //  HELPERS
 // ═══════════════════════════════════════════════════════════
 function getDataArr(key) {
-  const map={labels:data.labels,jugs:data.jugs,bags:data.bags,boxes:data.boxes,pallets:data.pallets};
+  const map={
+    labels:   data.labels,
+    jugs:     data.jugs,
+    closures: data.jugs || data.closures, // 'closures' is an alias for 'jugs'
+    bags:     data.bags,
+    boxes:    data.boxes,
+    pallets:  data.pallets
+  };
   return map[key];
 }
 function esc(s){ return (s||"").replace(/'/g,"\\'").replace(/"/g,"&quot;"); }
