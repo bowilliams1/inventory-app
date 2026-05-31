@@ -1447,16 +1447,16 @@ function renderOrders() {
   let h=`<div class="sh">Quick Request</div>
   <div class="order-grid">
     ${ORDER_ITEMS.map((item,i)=>{
-      // Image priority: 1) direct Image_URL from sheet, 2) Amazon CDN via ASIN, 3) emoji
-      const directImg = item.imageUrl || "";
-      const asin = (item.url||"").match(/\/dp\/([A-Z0-9]{10})/)?.[1] || "";
-      const cdnImg = asin ? `https://images-na.ssl-images-amazon.com/images/P/${asin}.01.L.jpg` : "";
-      const imgSrc = directImg || cdnImg;
-      if(imgSrc) console.log("[BO ORDER] Image " + (directImg ? "from sheet" : "from CDN") + " for:", item.name);
-      else console.log("[BO ORDER] No image URL — using emoji for:", item.name);
+      // Image_URL from sheet only. Amazon product page URLs are NOT image URLs.
+      const imageUrl = (item.imageUrl || "").trim();
+      if(imageUrl) {
+        console.log("[BO ORDER] Image: using Image_URL from sheet for:", item.name, "->", imageUrl);
+      } else {
+        console.log("[BO ORDER] Image: no Image_URL — showing emoji for:", item.name);
+      }
       return `<div class="order-tile" onclick="openOrderModal(${i})">
-        ${imgSrc
-          ? `<div class="ot-img-wrap"><img src="${imgSrc}" class="ot-img" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><span class="ot-icon" style="display:none">${item.emoji}</span></div>`
+        ${imageUrl
+          ? `<div class="ot-img-wrap"><img src="${imageUrl}" class="ot-img" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><span class="ot-icon" style="display:none">${item.emoji}</span></div>`
           : `<div class="ot-icon">${item.emoji}</div>`}
         <div class="ot-name">${item.name}</div>
       </div>`;
