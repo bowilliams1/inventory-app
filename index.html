@@ -1252,7 +1252,7 @@ function renderChips() {
   el.innerHTML=`
     <div class="chip"><div class="cv">${totalLabels.toLocaleString()}</div><div class="cl">Total Labels</div></div>
     <div class="chip"><div class="cv">${data.labels.length}</div><div class="cl">Label SKUs</div></div>
-    <div class="chip"><div class="cv">${totalPallets}</div><div class="cl">Pallets On Hand</div></div>
+    <div class="chip"><div class="cv">${totalPallets}</div><div class="cl">Pallets Available</div></div>
     ${pendingOrders>0?`<div class="chip"><div class="cv" style="color:var(--lo)">${pendingOrders}</div><div class="cl">Pending Orders</div></div>`:""}
   `;
 }
@@ -1402,7 +1402,7 @@ function renderPallets() {
   const items = data.pallets||[];
   const totP = items.reduce((s,p)=>s+p.pallets,0);
   const totU = items.reduce((s,p)=>s+p.units,0);
-  let h=`<div class="sh">Pallets On Hand &nbsp;·&nbsp; ${totP} pallets &nbsp;·&nbsp; ${totU.toLocaleString()} units</div>`;
+  let h=`<div class="sh">Pallets Available &nbsp;·&nbsp; ${totP} pallets &nbsp;·&nbsp; ${totU.toLocaleString()} units</div>`;
   h+=`<div class="card">${items.map(p=>palletItemHTML(p)).join("")||'<div class="empty">No pallets.</div>'}</div>`;
   if(role==="admin") h+=`<div class="aform"><h3>Add Product</h3>
     <div class="ff"><label>Product name</label><input id="pal-name" placeholder="e.g. Weed Killer 4-Pack"></div>
@@ -1419,7 +1419,7 @@ function palletItemHTML(p) {
   const isAdmin=role==="admin", isMgr=role==="manager";
   const palDisp=p.pallets%1===0?p.pallets:p.pallets.toFixed(1);
   let adm="";
-  if(isAdmin) adm=`<div class="adm-row"><button class="bsm del" onclick="confirmDel('Pallets','pallets',${p.row},'${esc(p.name)}')">🗑 Remove</button></div>`;
+  // No Remove button — Pallets Available is fixed inventory
   return `<div class="pallet-item">
     <div class="pi-body">
       <div class="pi-name" title="${p.name}">${p.name}</div>
@@ -1667,7 +1667,7 @@ function renderDesktopView(view) {
   } else if(view==="pallets") {
     const items=data.pallets||[];
     html=`<div style="max-width:800px">
-      <div class="sh">Pallets On Hand</div>
+      <div class="sh">Pallets Available</div>
       <div class="card">${items.map(p=>palletItemHTML(p)).join("")}</div>
       ${role==="admin"?`<div class="aform"><h3>Add Product</h3><div class="ff"><label>Product name</label><input id="pal-name" placeholder="Product name"></div><div class="frow"><div class="ff"><label>Pallets</label><input id="pal-qty" type="number" min="0" placeholder="0"></div><div class="ff"><label>Total units</label><input id="pal-units" type="number" min="0" placeholder="0"></div></div><button class="badd" onclick="addPalletAction()">Add Product</button></div>`:""}
     </div>`;
@@ -1794,12 +1794,29 @@ async function commitEdit(dataKey, row, sheetName) {
 }
 
 function editPallet(row, current) {
-  const el=document.getElementById(`pnum-${row}`);
-  if(el) {
-    el.outerHTML=`<input class="qinput" id="pi-pal-${row}" type="number" inputmode="decimal" value="${current}" style="width:60px" onblur="commitPallet(${row})" onkeydown="if(event.key==='Enter')this.blur()">`;
-    setTimeout(()=>{const i=document.getElementById(`pi-pal-${row}`);if(i){i.focus();i.select();}},30);
-  }
+  const item = data.pallets?.find(p => p.row === row);
+  const label = (item ? item.name : 'PALLETS').toUpperCase() + ' — PALLET COUNT';
+  openNumpad(label, current, async (val) => {
+    if(!item) return;
+    // Recalculate units proportionally
+    const oldPallets = item.pallets;
+    const unitsPerPallet = oldPallets > 0 ? item.units / oldPallets : 0;
+    item.pallets = val;
+    if(unitsPerPallet > 0) item.units = Math.round(val * unitsPerPallet);
+    renderPallets(); if(deskView==="pallets") renderDesktopView("pallets");
+    if(!cfg()) return;
+    syncStatus("busy","Saving…");
+    try {
+      // Save pallet count to col B, units to col C
+      await api({action:"setInventoryQty", sheet:"Pallets Available", row, qty:val, col:2});
+      if(unitsPerPallet > 0) {
+        await api({action:"setInventoryQty", sheet:"Pallets Available", row, qty:item.units, col:3});
+      }
+      syncStatus("ok","Saved ✓");
+    } catch(e) { syncStatus("err","Save failed"); }
+  });
 }
+
 async function commitPallet(row) {
   const el=document.getElementById(`pi-pal-${row}`);
   if(!el) return;
