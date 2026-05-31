@@ -520,7 +520,8 @@ body{font-family:'Rajdhani',sans-serif;background:var(--black);color:var(--white
 
 /* Desktop main area */
 .desk-body{
-  flex:1;overflow:hidden;padding:20px 24px;
+  flex:1;display:flex;flex-direction:column;overflow:hidden;
+  padding:20px 24px;
   background:var(--black);position:relative;
 }
 .desk-body::before{
@@ -528,19 +529,20 @@ body{font-family:'Rajdhani',sans-serif;background:var(--black);color:var(--white
   background-image:linear-gradient(rgba(74,173,46,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(74,173,46,0.025) 1px,transparent 1px);
   background-size:36px 36px;pointer-events:none;
 }
-.desk-sec-row{display:flex;align-items:center;gap:12px;margin-bottom:12px;position:relative;z-index:1}
+.desk-sec-row{display:flex;align-items:center;gap:12px;margin-bottom:clamp(6px,.7vh,12px);flex-shrink:0;position:relative;z-index:1}
 .desk-sec-lbl{font-size:10px;font-weight:700;letter-spacing:.18em;color:var(--green);opacity:.7;white-space:nowrap}
 .desk-sec-line{flex:1;height:1px;background:linear-gradient(90deg,rgba(74,173,46,0.25),transparent)}
 
 /* Desktop inventory tiles - icon + name ONLY */
-.desk-inv-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px;position:relative;z-index:1}
+.desk-inv-grid{display:grid;grid-template-columns:repeat(5,1fr);align-items:stretch;gap:clamp(8px,1vw,16px);flex:3;min-height:0;margin-bottom:clamp(8px,1vh,16px);position:relative;z-index:1}
 .desk-tile{
   background:#111110;border:1px solid rgba(74,173,46,0.12);
-  border-radius:12px;padding:22px 14px 18px;
+  border-radius:12px;padding:clamp(16px,2vh,36px) clamp(10px,1.2vw,20px);
   position:relative;cursor:pointer;overflow:hidden;
   transition:border-color .2s,background .2s,transform .2s;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
-  min-height:140px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:clamp(10px,1.4vh,22px);
+  height:100%;min-height:0;
 }
 .desk-tile::before,.desk-tile::after{content:'';position:absolute;width:11px;height:11px;border-color:rgba(74,173,46,0.5);border-style:solid}
 .desk-tile::before{top:6px;left:6px;border-width:1.5px 0 0 1.5px}
@@ -551,29 +553,32 @@ body{font-family:'Rajdhani',sans-serif;background:var(--black);color:var(--white
 .dtb2{background:linear-gradient(90deg,#2a6aee,#6090f0)}
 .dtb3{background:linear-gradient(90deg,var(--lo),#f0c060)}
 .dtb4{background:linear-gradient(90deg,#888,#bbb)}
-.desk-tile-ico{flex-shrink:0}
+.desk-tile-ico{flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.desk-tile-ico svg{width:clamp(52px,5.5vw,100px);height:auto}
 .desk-tile-name{
-  font-size:12px;font-weight:700;letter-spacing:.12em;
+  font-size:clamp(13px,1.3vw,26px);font-weight:700;letter-spacing:.12em;
   color:var(--silver);text-transform:uppercase;text-align:center;opacity:.8;
 }
 
 /* Desktop operations tiles */
-.desk-ops-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;position:relative;z-index:1}
+.desk-ops-grid{display:grid;grid-template-columns:repeat(3,1fr);align-items:stretch;gap:clamp(8px,1vw,16px);flex:2;min-height:0;position:relative;z-index:1}
 .desk-ops-tile{
   background:#111110;border:1px solid rgba(74,173,46,0.12);
-  border-radius:12px;padding:18px 20px;
+  border-radius:12px;padding:clamp(14px,1.8vh,30px) clamp(16px,1.5vw,28px);
   position:relative;cursor:pointer;overflow:hidden;
   transition:border-color .2s,background .2s,transform .2s;
-  display:flex;align-items:center;gap:18px;min-height:96px;
+  display:flex;align-items:center;gap:clamp(14px,1.5vw,28px);
+  height:100%;min-height:0;
 }
 .desk-ops-tile::before,.desk-ops-tile::after{content:'';position:absolute;width:11px;height:11px;border-color:rgba(74,173,46,0.5);border-style:solid}
 .desk-ops-tile::before{top:6px;left:6px;border-width:1.5px 0 0 1.5px}
 .desk-ops-tile::after{bottom:6px;right:6px;border-width:0 1.5px 1.5px 0}
 .desk-ops-tile:hover{border-color:rgba(74,173,46,0.45);background:#151513;transform:translateY(-3px);box-shadow:0 12px 32px rgba(0,0,0,.5)}
 .desk-ops-tile:active{transform:translateY(-1px)}
-.desk-ops-ico{flex-shrink:0;width:60px;height:60px;display:flex;align-items:center;justify-content:center}
-.desk-ops-name{font-size:14px;font-weight:700;letter-spacing:.08em;color:var(--silver);text-transform:uppercase;margin-bottom:4px}
-.desk-ops-desc{font-size:11px;color:#484844;line-height:1.6}
+.desk-ops-ico{flex-shrink:0;width:clamp(52px,5.5vw,90px);height:clamp(52px,5.5vw,90px);display:flex;align-items:center;justify-content:center}
+.desk-ops-ico svg{width:100%;height:auto}
+.desk-ops-name{font-size:clamp(14px,1.3vw,26px);font-weight:700;letter-spacing:.08em;color:var(--silver);text-transform:uppercase;margin-bottom:clamp(3px,.4vh,8px)}
+.desk-ops-desc{font-size:clamp(11px,0.9vw,18px);color:#484844;line-height:1.6}
 .desk-pending{position:absolute;top:10px;right:10px;background:var(--lo);color:#0a0a08;font-size:9px;font-weight:800;padding:3px 9px;border-radius:20px;letter-spacing:.05em}
 
 /* Desktop full-screen function view */
