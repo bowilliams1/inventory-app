@@ -641,6 +641,26 @@ body{font-family:'Rajdhani',sans-serif;background:var(--black);color:var(--white
 .npbtn.np-cancel{background:#2a1a1a;color:#c44;font-size:20px;}
 .npbtn.np-cancel:active{background:#3a2a2a;}
 
+
+/* ── IMPROVED TIME CARD ──────────────────────────────────────────── */
+.tc-card{ background:#111110; border:1px solid rgba(74,173,46,0.2); border-radius:12px; padding:16px; margin:12px 0; }
+.tc-card-hdr{ display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; padding-bottom:10px; border-bottom:1px solid #222; }
+.tc-card-hdr .name{ font-size:13px; font-weight:700; letter-spacing:.1em; color:var(--green); }
+.tc-card-hdr .period{ font-size:10px; color:#555; letter-spacing:.06em; }
+.tc-row{ border-bottom:1px solid #1a1a18; padding:10px 4px; }
+.tc-row:last-of-type{ border-bottom:none; }
+.tc-today{ border-left:3px solid var(--green); padding-left:8px; }
+.tc-day-hdr{ display:flex; justify-content:space-between; align-items:center; margin-bottom:7px; }
+.tc-date{ font-size:12px; font-weight:700; color:var(--white); letter-spacing:.05em; }
+.tc-day-hrs{ font-family:'Share Tech Mono',monospace; font-size:13px; color:var(--green); font-weight:700; }
+.tc-punch{ display:flex; justify-content:space-between; align-items:center; padding:2px 0; }
+.tc-punch-lbl{ font-size:10px; color:#555; letter-spacing:.08em; text-transform:uppercase; min-width:70px; }
+.tc-punch-val{ font-family:'Share Tech Mono',monospace; font-size:11px; color:var(--silver); }
+.tc-punch-empty{ font-size:10px; color:#333; font-style:italic; padding:2px 0; }
+.tc-period-total{ display:flex; justify-content:space-between; align-items:center; margin-top:12px; padding-top:12px; border-top:2px solid rgba(74,173,46,0.3); }
+.tc-period-total span:first-child{ font-size:11px; font-weight:700; letter-spacing:.1em; color:#666; text-transform:uppercase; }
+.tc-total-hrs{ font-family:'Share Tech Mono',monospace; font-size:18px; color:var(--green); font-weight:700; }
+
 </style>
 </head>
 <body>
@@ -1485,45 +1505,90 @@ function renderPinPad() {
 }
 
 function renderTimeCard() {
-  const emp = tcEmployee;
-  const card = tcTimeCard || {rows:[], currentStatus:"not_in", today:""};
-  const s = card.currentStatus;
-  const canIn     = s==="not_in" || s==="clocked_out";
+  const emp  = tcEmployee;
+  const card = tcTimeCard || {rows:[], currentStatus:"not_in", today:"", periodStart:""};
+  const s    = card.currentStatus;
+  const canIn     = s==="not_in"    || s==="clocked_out";
   const canLunchO = s==="clocked_in";
   const canLunchI = s==="at_lunch";
   const canOut    = s==="clocked_in";
 
-  let rows="";
-  if(card.rows&&card.rows.length) {
-    rows=card.rows.map(r=>`<div class="tc-row">
-      <div class="tc-date">${r.date||"—"}</div>
-      <div class="tc-punches">
-        ${r.clockIn?`<span class="punch-time">In: ${r.clockIn}</span><br>`:""}
-        ${r.lunchOut?`<span class="punch-time">Lunch out: ${r.lunchOut}</span><br>`:""}
-        ${r.lunchIn?`<span class="punch-time">Lunch in: ${r.lunchIn}</span><br>`:""}
-        ${r.clockOut?`<span class="punch-time">Out: ${r.clockOut}</span>`:""}
-      </div>
-      <div class="tc-hrs">${r.totalHrs||""}</div>
-    </div>`).join("");
-  } else {
-    rows=`<div class="empty">No punches this pay period yet.</div>`;
+  // "2026-05-31" → "Sat May 31"
+  function fmtDate(str) {
+    if(!str) return "";
+    const d = new Date(str + "T00:00:00");
+    return isNaN(d) ? str : d.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"});
   }
+  // "08:00:00 AM" → "8:00 AM"
+  function fmtTime(t) {
+    if(!t) return "";
+    const m = t.match(/(\d+):(\d+)(?::\d+)?\s*(AM|PM)?/i);
+    if(!m) return t;
+    return `${parseInt(m[1])}:${m[2]}${m[3]?" "+m[3].toUpperCase():""}`;
+  }
+  // Calculate daily hours client-side (works before clock-out saves to sheet)
+  function dailyHrs(r) {
+    if(r.totalHrs !== "" && r.totalHrs !== undefined && r.totalHrs !== null) {
+      const h = parseFloat(r.totalHrs); if(!isNaN(h) && h>0) return h;
+    }
+    if(!r.clockIn || !r.clockOut) return null;
+    const p = t => { const d=new Date("1970-01-01 "+t); return isNaN(d)?null:d; };
+    const i=p(r.clockIn), o=p(r.clockOut); if(!i||!o) return null;
+    let ms=o-i;
+    const lo=p(r.lunchOut), li=p(r.lunchIn);
+    if(lo&&li&&li>lo) ms-=(li-lo);
+    return Math.round(Math.max(0,ms/3600000)*100)/100;
+  }
+
+  let periodTotal = 0;
+  let rowsHtml = "";
+
+  if(card.rows && card.rows.length) {
+    rowsHtml = card.rows.map(r => {
+      const hrs = dailyHrs(r);
+      if(hrs !== null) periodTotal += hrs;
+      const today = r.date === card.today;
+      return `<div class="tc-row${today?" tc-today":""}">
+        <div class="tc-day-hdr">
+          <span class="tc-date">${fmtDate(r.date)}</span>
+          <span class="tc-day-hrs">${hrs!==null ? hrs+"h" : (r.clockIn?"In progress":"—")}</span>
+        </div>
+        <div>
+          ${r.clockIn  ?`<div class="tc-punch"><span class="tc-punch-lbl">Clock In</span><span class="tc-punch-val">${fmtTime(r.clockIn)}</span></div>`:""}
+          ${r.lunchOut ?`<div class="tc-punch"><span class="tc-punch-lbl">Lunch Out</span><span class="tc-punch-val">${fmtTime(r.lunchOut)}</span></div>`:""}
+          ${r.lunchIn  ?`<div class="tc-punch"><span class="tc-punch-lbl">Lunch In</span><span class="tc-punch-val">${fmtTime(r.lunchIn)}</span></div>`:""}
+          ${r.clockOut ?`<div class="tc-punch"><span class="tc-punch-lbl">Clock Out</span><span class="tc-punch-val">${fmtTime(r.clockOut)}</span></div>`:""}
+          ${!r.clockIn ?`<div class="tc-punch-empty">No punches recorded</div>`:""}
+        </div>
+      </div>`;
+    }).join("");
+    rowsHtml += `<div class="tc-period-total">
+      <span>Period Total</span>
+      <span class="tc-total-hrs">${periodTotal.toFixed(2)} hrs</span>
+    </div>`;
+  } else {
+    rowsHtml = `<div class="empty">No punches this pay period yet.</div>`;
+  }
+
+  const periodLbl = card.periodStart
+    ? `${fmtDate(card.periodStart)} — Mon`
+    : "Current pay period";
 
   return `<div class="tc-section">
     <div class="tc-title">${emp?.name||""}</div>
     <div class="tc-actions">
-      <button class="tc-action-btn in"  onclick="doPunch('in')"       ${!canIn?"disabled":""}>🟢 Clock In</button>
+      <button class="tc-action-btn in"    onclick="doPunch('in')"        ${!canIn    ?"disabled":""}>🟢 Clock In</button>
       <button class="tc-action-btn lunch" onclick="doPunch('lunch_out')" ${!canLunchO?"disabled":""}>🟡 Lunch Out</button>
       <button class="tc-action-btn lunch" onclick="doPunch('lunch_in')"  ${!canLunchI?"disabled":""}>🟡 Lunch In</button>
-      <button class="tc-action-btn out"  onclick="doPunch('out')"       ${!canOut?"disabled":""}>🔴 Clock Out</button>
+      <button class="tc-action-btn out"   onclick="doPunch('out')"       ${!canOut   ?"disabled":""}>🔴 Clock Out</button>
     </div>
     <button class="timeoff-btn" onclick="openTimeOff()">📅 Request Time Off</button>
     <div class="tc-card">
       <div class="tc-card-hdr">
-        <span class="name">This Week's Time Card</span>
-        <span class="period">Current pay period</span>
+        <span class="name">Pay Period Time Card</span>
+        <span class="period">${periodLbl}</span>
       </div>
-      ${rows}
+      ${rowsHtml}
     </div>
     <button class="timeoff-btn" onclick="tcStep='employees';tcPin='';tcEmployee=null;tcTimeCard=null;renderTimeClock()">← Switch Employee</button>
   </div>`;
