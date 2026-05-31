@@ -1066,18 +1066,22 @@ function loadOffline() {
     {row:45,name:"WEED KILLER",size:"32 OZ",qty:0},
     {row:46,name:"WEED KILLER",size:"16 OZ",qty:0}
   ];
+  // Row numbers match ACTUAL sheet rows (blank rows between groups are counted)
   data.jugs=[
-    {row:2,name:"White gal jugs",size:"",qty:20832,step:336},
-    {row:3,name:"Clear gal jugs",size:"",qty:10368,step:384},
-    {row:4,name:"White gal caps",size:"",qty:60000,step:1500},
-    {row:5,name:"Green gal caps",size:"",qty:27000,step:1500},
-    {row:6,name:"White Quart pool stain jug",size:"",qty:30456,step:1},
-    {row:7,name:"White Quart pool stain caps",size:"",qty:31200,step:1},
-    {row:8,name:"non induction caps",size:"",qty:0,step:1},
-    {row:9,name:"Clear 32oz bottle",size:"",qty:0,step:1},
-    {row:10,name:"clear 16oz bottle",size:"",qty:0,step:1},
-    {row:11,name:"White bottle caps",size:"",qty:0,step:1},
-    {row:12,name:"White bottle sprayer",size:"",qty:0,step:1}
+    {row:2, name:"White gal jugs",             size:"",qty:15120,step:336},
+    {row:3, name:"Clear gal jugs",             size:"",qty:9984, step:384},
+    // row 4 is blank in sheet
+    {row:5, name:"White gal caps",             size:"",qty:57000,step:1500},
+    {row:6, name:"Green gal caps",             size:"",qty:27000,step:1500},
+    // row 7 is blank in sheet
+    {row:8, name:"White Quart pool stain jug", size:"",qty:30456,step:1},
+    {row:9, name:"White Quart pool stain caps",size:"",qty:31200,step:1},
+    {row:10,name:"non induction caps",         size:"",qty:0,    step:1},
+    // row 11 is blank in sheet
+    {row:12,name:"Clear 32oz bottle",          size:"",qty:0,    step:1},
+    {row:13,name:"clear 16oz bottle",          size:"",qty:0,    step:1},
+    {row:14,name:"White bottle caps",          size:"",qty:0,    step:1},
+    {row:15,name:"White bottle sprayer",       size:"",qty:0,    step:1}
   ];
   data.bags=[
     {row:2,name:"Gal Round 12x18",size:"",qty:7000,step:1},
@@ -1542,7 +1546,7 @@ function openDesktopView(view) {
   const fs=document.getElementById("desk-fullscreen");
   const title=document.getElementById("desk-fs-title");
   fs.classList.add("on");
-  const titles={labels:"Labels",closures:"Jugs & Caps",bags:"Plastic Bags",boxes:"Boxes",pallets:"Pallets",timeclock:"Time Sheet",orders:"Bo Order Request",log:"Activity Log"};
+  const titles={labels:"Labels",jugs:"Jugs & Caps",bags:"Plastic Bags",boxes:"Boxes",pallets:"Pallets",timeclock:"Time Sheet",orders:"Bo Order Request",log:"Activity Log"};
   title.textContent=titles[view]||view;
   renderDesktopView(view);
   startDeskTimeout();
