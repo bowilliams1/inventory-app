@@ -1258,13 +1258,7 @@ function addLabelForm() {
 function renderSection(dataKey, title, sheetName, hasStep) {
   const el = document.getElementById("pg-"+dataKey);
   const items = data[dataKey]||[];
-  let h = `<div class="sh">${title}</div>`;
-  // Temporary debug counter — remove when Jugs/Caps issue is confirmed fixed
-  if(dataKey==="jugs") {
-    h += `<div style="color:#f0a030;font-family:monospace;font-size:11px;padding:2px 8px 4px">DEBUG: jugs count = ${items.length}</div>`;
-    console.log("[JUGS DEBUG] renderSection: jugs items =", items.length, items.map(i=>i.name+":"+i.row));
-  }
-  h += `<div class="card">${items.map(i=>sectionItemHTML(i,dataKey,sheetName,hasStep)).join("")||'<div class="empty">No items.</div>'}</div>`;
+  let h = `<div class="sh">${title}</div><div class="card">${items.map(i=>sectionItemHTML(i,dataKey,sheetName,hasStep)).join("")||'<div class="empty">No items.</div>'}</div>`;
   if(role==="admin") {
     const pfx=dataKey.slice(0,3);
     h+=`<div class="aform"><h3>Add Item</h3>
@@ -1306,7 +1300,10 @@ function sectionItemHTML(item, dataKey, sheetName, hasStep) {
     <button class="buse" onclick="useItemDirect('${sheetName}','${dataKey}',${item.row},'${esc(item.name)}','${esc(item.size)}')">USE</button>
   </div>`;
   let adm="";
-  if(isAdmin) adm=`<div class="adm-row"><button class="bsm del" onclick="confirmDel('${sheetName}','${dataKey}',${item.row},'${esc(item.name)}')">🗑 Remove</button></div>`;
+  // Remove button only for Labels — Jugs/Caps, Bags, Boxes are fixed inventory
+  if(isAdmin && dataKey!=="jugs" && dataKey!=="bags" && dataKey!=="boxes") {
+    adm=`<div class="adm-row"><button class="bsm del" onclick="confirmDel('${sheetName}','${dataKey}',${item.row},'${esc(item.name)}')">🗑 Remove</button></div>`;
+  }
   return `<div class="item">
     <div class="ib">
       <div class="iname" title="${item.name}">${item.name}</div>
@@ -1572,7 +1569,6 @@ function renderDesktopView(view) {
   } else if(view==="jugs") {
     html=`<div style="max-width:800px">
       <div class="sh">Jugs & Caps</div>
-      <div style="color:#f0a030;font-family:monospace;font-size:11px;padding:2px 8px 4px">DEBUG: jugs count = ${(data.jugs||[]).length}</div>
       <div class="card">${(data.jugs||[]).map(i=>sectionItemHTML(i,"jugs","Jugs, Caps",true)).join("")}</div>
       ${role==="admin"?`<div class="aform"><h3>Add Item</h3><div class="ff"><label>Name</label><input id="clo-name" placeholder="Item name"></div><div class="frow"><div class="ff"><label>Size</label><input id="clo-size"></div><div class="ff"><label>Qty</label><input id="clo-qty" type="number" min="0" placeholder="0"></div></div><button class="badd" onclick="addItemAction('Jugs, Caps','jugs','clo')">Add Item</button></div>`:""}
     </div>`;
