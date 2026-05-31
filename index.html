@@ -871,12 +871,12 @@ const PASSWORDS = { admin:"admin2025", manager:"manager2025", production:"produc
 
 const ROLL_SIZE = 700; // labels per roll
 
-// Closure step sizes: units removed per +/- press
+// Step sizes per +/- press — keys MUST be lowercase (getStep lowercases item.name before lookup)
 const CLOSURE_STEPS = {
-  "White Gal Jugs": 336,
-  "Clear Gal Jugs": 384,
-  "White Gal Caps": 1500,
-  "Green Gal Caps": 1500
+  "white gal jugs": 336,
+  "clear gal jugs": 384,
+  "white gal caps": 1500,
+  "green gal caps": 1500
 };
 
 const EMPLOYEES = [
@@ -905,7 +905,7 @@ const ORDER_ITEMS = [
 // ═══════════════════════════════════════════════════════════
 let role="", pw="", isDesktop=false;
 let activePage="labels";
-let data={ labels:[], closures:[], bags:[], boxes:[], pallets:[], log:[], orders:[] };
+let data={ labels:[], jugs:[], bags:[], boxes:[], pallets:[], log:[], orders:[], boOrderItems:[] };
 let pendingDelete=null;
 let labelSearch="", labelFilter="all";
 
@@ -999,8 +999,7 @@ async function loadAll() {
     const r = await api({action:"getAll"});
     if(r?.ok) {
       data=r;
-      // Handle both old API (returns 'closures') and new API (returns 'jugs')
-      data.jugs = data.jugs || data.closures || [];
+      data.jugs = r.jugs || [];   // 'Jugs, Caps' sheet — key is always 'jugs'
       // Merge image URLs from sheet into ORDER_ITEMS (if Image_URL column exists in Bo Order tab)
       if(data.boOrderItems && data.boOrderItems.length > 0) {
         data.boOrderItems.forEach(sheetItem => {
@@ -1066,18 +1065,22 @@ function loadOffline() {
     {row:45,name:"WEED KILLER",size:"32 OZ",qty:0},
     {row:46,name:"WEED KILLER",size:"16 OZ",qty:0}
   ];
+  // Row numbers match ACTUAL sheet rows (blank rows between groups are counted)
   data.jugs=[
-    {row:2,name:"White gal jugs",size:"",qty:20832,step:336},
-    {row:3,name:"Clear gal jugs",size:"",qty:10368,step:384},
-    {row:4,name:"White gal caps",size:"",qty:60000,step:1500},
-    {row:5,name:"Green gal caps",size:"",qty:27000,step:1500},
-    {row:6,name:"White Quart pool stain jug",size:"",qty:30456,step:1},
-    {row:7,name:"White Quart pool stain caps",size:"",qty:31200,step:1},
-    {row:8,name:"non induction caps",size:"",qty:0,step:1},
-    {row:9,name:"Clear 32oz bottle",size:"",qty:0,step:1},
-    {row:10,name:"clear 16oz bottle",size:"",qty:0,step:1},
-    {row:11,name:"White bottle caps",size:"",qty:0,step:1},
-    {row:12,name:"White bottle sprayer",size:"",qty:0,step:1}
+    {row:2, name:"White gal jugs",             size:"",qty:15120,step:336},
+    {row:3, name:"Clear gal jugs",             size:"",qty:9984, step:384},
+    // row 4 is blank in sheet
+    {row:5, name:"White gal caps",             size:"",qty:57000,step:1500},
+    {row:6, name:"Green gal caps",             size:"",qty:27000,step:1500},
+    // row 7 is blank in sheet
+    {row:8, name:"White Quart pool stain jug", size:"",qty:30456,step:1},
+    {row:9, name:"White Quart pool stain caps",size:"",qty:31200,step:1},
+    {row:10,name:"non induction caps",         size:"",qty:0,    step:1},
+    // row 11 is blank in sheet
+    {row:12,name:"Clear 32oz bottle",          size:"",qty:0,    step:1},
+    {row:13,name:"clear 16oz bottle",          size:"",qty:0,    step:1},
+    {row:14,name:"White bottle caps",          size:"",qty:0,    step:1},
+    {row:15,name:"White bottle sprayer",       size:"",qty:0,    step:1}
   ];
   data.bags=[
     {row:2,name:"Gal Round 12x18",size:"",qty:7000,step:1},
@@ -1255,7 +1258,13 @@ function addLabelForm() {
 function renderSection(dataKey, title, sheetName, hasStep) {
   const el = document.getElementById("pg-"+dataKey);
   const items = data[dataKey]||[];
-  let h=`<div class="sh">${title}</div><div class="card">${items.map(i=>sectionItemHTML(i,dataKey,sheetName,hasStep)).join("")||'<div class="empty">No items.</div>'}</div>`;
+  let h = `<div class="sh">${title}</div>`;
+  // Temporary debug counter — remove when Jugs/Caps issue is confirmed fixed
+  if(dataKey==="jugs") {
+    h += `<div style="color:#f0a030;font-family:monospace;font-size:11px;padding:2px 8px 4px">DEBUG: jugs count = ${items.length}</div>`;
+    console.log("[JUGS DEBUG] renderSection: jugs items =", items.length, items.map(i=>i.name+":"+i.row));
+  }
+  h += `<div class="card">${items.map(i=>sectionItemHTML(i,dataKey,sheetName,hasStep)).join("")||'<div class="empty">No items.</div>'}</div>`;
   if(role==="admin") {
     const pfx=dataKey.slice(0,3);
     h+=`<div class="aform"><h3>Add Item</h3>
@@ -1542,7 +1551,7 @@ function openDesktopView(view) {
   const fs=document.getElementById("desk-fullscreen");
   const title=document.getElementById("desk-fs-title");
   fs.classList.add("on");
-  const titles={labels:"Labels",closures:"Jugs & Caps",bags:"Plastic Bags",boxes:"Boxes",pallets:"Pallets",timeclock:"Time Sheet",orders:"Bo Order Request",log:"Activity Log"};
+  const titles={labels:"Labels",jugs:"Jugs & Caps",bags:"Plastic Bags",boxes:"Boxes",pallets:"Pallets",timeclock:"Time Sheet",orders:"Bo Order Request",log:"Activity Log"};
   title.textContent=titles[view]||view;
   renderDesktopView(view);
   startDeskTimeout();
@@ -1563,7 +1572,8 @@ function renderDesktopView(view) {
   } else if(view==="jugs") {
     html=`<div style="max-width:800px">
       <div class="sh">Jugs & Caps</div>
-      <div class="card">${(data.jugs||[]).map(i=>sectionItemHTML(i,"closures","Jugs, Caps",true)).join("")}</div>
+      <div style="color:#f0a030;font-family:monospace;font-size:11px;padding:2px 8px 4px">DEBUG: jugs count = ${(data.jugs||[]).length}</div>
+      <div class="card">${(data.jugs||[]).map(i=>sectionItemHTML(i,"jugs","Jugs, Caps",true)).join("")}</div>
       ${role==="admin"?`<div class="aform"><h3>Add Item</h3><div class="ff"><label>Name</label><input id="clo-name" placeholder="Item name"></div><div class="frow"><div class="ff"><label>Size</label><input id="clo-size"></div><div class="ff"><label>Qty</label><input id="clo-qty" type="number" min="0" placeholder="0"></div></div><button class="badd" onclick="addItemAction('Jugs, Caps','jugs','clo')">Add Item</button></div>`:""}
     </div>`;
   } else if(view==="bags") {
@@ -1664,25 +1674,44 @@ function updateDeskPendingBadge() {
 //  INLINE EDIT (tap qty)
 // ═══════════════════════════════════════════════════════════
 function startEdit(dataKey, row, sheetName, current) {
-  const id=`qv-${dataKey}-${row}`;
-  const el=document.getElementById(id);
+  const id = `qv-${dataKey}-${row}`;
+  const el = document.getElementById(id);
   if(el) {
-    el.outerHTML=`<input class="qinput" id="qi-${dataKey}-${row}" type="number" inputmode="numeric" value="${current}" onblur="commitEdit('${dataKey}',${row},'${sheetName}')" onkeydown="if(event.key==='Enter')this.blur()">`;
-    setTimeout(()=>{const i=document.getElementById(`qi-${dataKey}-${row}`);if(i){i.focus();i.select();}},30);
+    // Touchscreen: type="number" inputmode="numeric" pattern="[0-9]*" triggers numeric keypad
+    el.outerHTML = `<input
+      type="number" inputmode="numeric" pattern="[0-9]*" min="0"
+      class="qinput" id="qi-${dataKey}-${row}" value="${current}"
+      onblur="commitEdit('${dataKey}',${row},'${sheetName}')"
+      onkeydown="if(event.key==='Enter')this.blur()"
+      onclick="event.stopPropagation()">`;
+    // Immediately focus and select so touchscreen keypad pops up
+    const input = document.getElementById(`qi-${dataKey}-${row}`);
+    if(input) { input.focus(); input.select(); }
   }
 }
+
 async function commitEdit(dataKey, row, sheetName) {
-  const el=document.getElementById(`qi-${dataKey}-${row}`);
+  const el = document.getElementById(`qi-${dataKey}-${row}`);
   if(!el) return;
-  const val=Math.max(0,parseInt(el.value)||0);
-  const arr=getDataArr(dataKey);
-  const item=arr?.find(i=>i.row===row);
-  if(item) item.qty=val;
+  const val = Math.max(0, parseInt(el.value) || 0);
+  const arr = getDataArr(dataKey);
+  const item = arr.find(i => i.row === row);
+  console.log("[EDIT] commitEdit", {dataKey, row, sheetName, val, itemFound: !!item});
+  if(item) item.qty = val;
   renderPage(); if(deskView) renderDesktopView(deskView);
   if(!cfg()) return;
   syncStatus("busy","Saving…");
-  try { await api({action:"setQtyDirect",sheet:sheetName,row,qty:val,col:3}); syncStatus("ok","Saved ✓"); }
-  catch(e){ syncStatus("err","Save failed"); }
+  try {
+    // Backend determines column — do not pass col from frontend
+    const r = await api({action:"setInventoryQty", sheet:sheetName, row, qty:val});
+    console.log("[EDIT] server response:", r);
+    if(r?.ok) {
+      if(typeof r.newQty==="number" && item) item.qty=r.newQty;
+      syncStatus("ok","Saved ✓");
+    } else {
+      syncStatus("err","Save error: "+(r?.error||"unknown"));
+    }
+  } catch(e) { console.error("[EDIT] exception:", e); syncStatus("err","Save failed"); }
 }
 
 function editPallet(row, current) {
@@ -1709,20 +1738,29 @@ async function commitPallet(row) {
 //  QUANTITY ACTIONS
 // ═══════════════════════════════════════════════════════════
 async function chg(sheetName, dataKey, row, delta, name, size) {
-  const arr=getDataArr(dataKey);
-  const item=arr?.find(i=>i.row===row);
-  if(!item){ toast("Item not found — try refreshing"); return; }
-  item.qty=Math.max(0,item.qty+delta);
-  toast((delta>0?"+ ":"− ")+Math.abs(delta).toLocaleString()+" × "+name);
+  const arr = getDataArr(dataKey);
+  console.log("[JUGS DEBUG] chg called", {sheetName, dataKey, row, delta, name, arrRows: arr.map(i=>i.row)});
+  const item = arr.find(i => i.row === row);
+  if(!item) {
+    const msg = "Item not found: dataKey=" + dataKey + " row=" + row + " (arr has rows: " + arr.map(i=>i.row).join(",") + ")";
+    console.error("[CHG]", msg);
+    toast(msg);
+    return;
+  }
+  const oldQty = item.qty;
+  item.qty = Math.max(0, item.qty + delta);
+  console.log("[CHG]", name, ":", oldQty, "→", item.qty, "(delta", delta + ")");
+  toast((delta>0?"+ ":"− ") + Math.abs(delta).toLocaleString() + " × " + name);
   renderPage(); if(deskView) renderDesktopView(deskView);
   if(!cfg()) return;
   syncStatus("busy","Saving…");
   try {
-    const r=await api({action:"updateQty",sheet:sheetName,row,delta});
-    if(r?.ok){ if(typeof r.newQty==="number") item.qty=r.newQty; syncStatus("ok","Saved ✓"); }
-    else syncStatus("err","Not saved: "+(r?.error||""));
-    await api({action:"addLog",type:delta>0?"in":"out",name,size,qty:Math.abs(delta)});
-  } catch(e){ syncStatus("err","Connection failed"); }
+    const r = await api({action:"updateInventoryQty", sheet:sheetName, row, delta});
+    console.log("[CHG] server response:", r);
+    if(r?.ok) { if(typeof r.newQty==="number") item.qty=r.newQty; syncStatus("ok","Saved ✓"); }
+    else syncStatus("err","Save error: "+(r?.error||"unknown"));
+    await api({action:"addLog", type:delta>0?"in":"out", name, size, qty:Math.abs(delta)});
+  } catch(e) { console.error("[CHG] exception:", e); syncStatus("err","Connection failed"); }
 }
 
 async function chgPallet(row, delta) {
@@ -2051,8 +2089,14 @@ async function markArrived(row) {
 //  HELPERS
 // ═══════════════════════════════════════════════════════════
 function getDataArr(key) {
-  const map={labels:data.labels,jugs:data.jugs,bags:data.bags,boxes:data.boxes,pallets:data.pallets};
-  return map[key];
+  const map = {
+    labels:  data.labels  || [],
+    jugs:    data.jugs    || [],   // Jugs, Caps — only key used
+    bags:    data.bags    || [],
+    boxes:   data.boxes   || [],
+    pallets: data.pallets || []
+  };
+  return map[key] || [];
 }
 function esc(s){ return (s||"").replace(/'/g,"\\'").replace(/"/g,"&quot;"); }
 function toast(msg) {
