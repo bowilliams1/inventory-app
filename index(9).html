@@ -1072,7 +1072,6 @@ body{font-family:'Rajdhani',sans-serif;background:var(--black);color:var(--white
         <div class="dft-divider"></div>
         <div class="dft-list" id="freight-in-preview"><div class="dft-empty">Loading…</div></div>
         <div class="dft-more" id="freight-in-more"></div>
-        <div id="freight-in-dbg" style="font-size:10px;color:#f0a030;font-family:monospace;padding:2px 0"></div>
       </div>
 
       <!-- Freight Outgoing Tile — mini-list view -->
@@ -1085,7 +1084,6 @@ body{font-family:'Rajdhani',sans-serif;background:var(--black);color:var(--white
         <div class="dft-divider"></div>
         <div class="dft-list" id="freight-out-preview"><div class="dft-empty">Loading…</div></div>
         <div class="dft-more" id="freight-out-more"></div>
-        <div id="freight-out-dbg" style="font-size:10px;color:#f0a030;font-family:monospace;padding:2px 0"></div>
       </div>
 
     </div><!-- end freight grid -->
@@ -2242,12 +2240,6 @@ function updateDeskPendingBadge() {
   if(foMore)    foMore.textContent  = foItems.length > 3 ? '+ '+(foItems.length-3)+' more — tap to view all' : (foItems.length ? 'Tap for full details →' : '');
   if(fiBadge){ fiBadge.textContent=fiItems.length||''; fiBadge.style.display=fiItems.length?'':'none'; }
   if(foBadge){ foBadge.textContent=foItems.length||''; foBadge.style.display=foItems.length?'':'none'; }
-
-  // DIAGNOSTIC — shows raw API count on tile so we can see if API or display is the issue
-  const fiDbg = document.getElementById('freight-in-dbg');
-  const foDbg = document.getElementById('freight-out-dbg');
-  if(fiDbg) fiDbg.textContent = 'API: '+fiItems.length+' items';
-  if(foDbg) foDbg.textContent = 'API: '+foItems.length+' items';
 }
 
 // ═══════════════════════════════════════════════════════════
