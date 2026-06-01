@@ -602,6 +602,9 @@ body{font-family:'Rajdhani',sans-serif;background:var(--black);color:var(--white
 .desk-fs-body{flex:1;overflow-y:auto;padding:20px 24px}
 .desk-timeout{font-size:11px;color:var(--silver);opacity:.4;margin-left:auto;font-family:'Share Tech Mono',monospace}
 
+/* Session restore — hide login before first paint without !important */
+html.has-session #login { display: none; }
+
 /* ── IN-APP NUMERIC KEYPAD (Mac Mini touchscreen + all touch devices) ── */
 #numpad-overlay{
   display:none;position:fixed;inset:0;z-index:9999;
@@ -834,6 +837,15 @@ body{font-family:'Rajdhani',sans-serif;background:var(--black);color:var(--white
 .wx-detail{ color:#555;font-size:clamp(9px,.75vw,12px); }
 
 </style>
+
+  <!-- Session check: add class to html element BEFORE first paint -->
+  <script>
+    try {
+      var _sr = sessionStorage.getItem('bosh_role');
+      if(_sr && ['admin','manager','production'].indexOf(_sr) >= 0)
+        document.documentElement.classList.add('has-session');
+    } catch(e){}
+  </script>
 </head>
 <body>
 
@@ -1245,7 +1257,8 @@ function tryLogin() {
 
 function signOut() {
   role=""; pw="";
-  sessionStorage.removeItem('bosh_role');    // clear saved session
+  sessionStorage.removeItem('bosh_role');
+  document.documentElement.classList.remove('has-session'); // allow login to show
   document.getElementById("login").style.display="flex";
   document.getElementById("mobile-app").style.display="none";
   document.getElementById("desktop-app").style.display="none";
@@ -2716,14 +2729,19 @@ detectLayout();
 
 // Restore login session after a browser refresh — no re-login needed on kiosk
 window.addEventListener('load', function() {
-  const savedRole = sessionStorage.getItem('bosh_role');
-  if(savedRole && PASSWORDS[savedRole]) {
-    role = savedRole;
-    document.getElementById("login").style.display = "none";
-    detectLayout();
-    applyRole();
-    loadAll();
-    if(isDesktop) { startDeskClock(); initWeather(); }
+  try {
+    const savedRole = sessionStorage.getItem('bosh_role');
+    if(savedRole && PASSWORDS[savedRole]) {
+      role = savedRole;
+      document.getElementById("login").style.display = "none";
+      detectLayout();
+      applyRole();
+      loadAll();
+      if(isDesktop) { startDeskClock(); initWeather(); }
+    }
+  } catch(e) {
+    // sessionStorage unavailable (private mode etc.) — just show login normally
+    console.warn('Session restore failed:', e);
   }
 });
 </script>
