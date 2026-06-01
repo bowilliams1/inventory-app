@@ -1172,6 +1172,7 @@ function tryLogin() {
   const v = document.getElementById("pw-in").value;
   if (v === PASSWORDS[r]) {
     role=r; pw=v;
+    sessionStorage.setItem('bosh_role', r);   // persist through refreshes
     document.getElementById("login").style.display="none";
     detectLayout();
     applyRole();
@@ -1186,6 +1187,7 @@ function tryLogin() {
 
 function signOut() {
   role=""; pw="";
+  sessionStorage.removeItem('bosh_role');    // clear saved session
   document.getElementById("login").style.display="flex";
   document.getElementById("mobile-app").style.display="none";
   document.getElementById("desktop-app").style.display="none";
@@ -2553,6 +2555,19 @@ setInterval(()=>{
 //  INIT
 // ═══════════════════════════════════════════════════════════
 detectLayout();
+
+// Restore login session after a browser refresh — no re-login needed on kiosk
+window.addEventListener('load', function() {
+  const savedRole = sessionStorage.getItem('bosh_role');
+  if(savedRole && PASSWORDS[savedRole]) {
+    role = savedRole;
+    document.getElementById("login").style.display = "none";
+    detectLayout();
+    applyRole();
+    loadAll();
+    if(isDesktop) startDeskClock();
+  }
+});
 </script>
 
 <!-- In-app numeric keypad — works on Mac Mini touchscreen and all touch devices -->
