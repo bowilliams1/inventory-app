@@ -791,6 +791,48 @@ body{font-family:'Rajdhani',sans-serif;background:var(--black);color:var(--white
   flex-shrink:0;
 }
 
+
+/* ── WEATHER WIDGET ─────────────────────────────────────────────────── */
+#weather-bar{
+  display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;
+  background:rgba(74,173,46,0.04);
+  border:1px solid rgba(74,173,46,0.1);
+  border-radius:8px;padding:6px 16px;
+  margin-bottom:clamp(4px,.5vh,8px);
+  font-family:'Share Tech Mono',monospace;
+  gap:20px;
+}
+.wx-current{
+  display:flex;align-items:center;gap:14px;
+  font-size:clamp(11px,0.9vw,16px);color:#777;
+}
+.wx-temp{
+  font-size:clamp(16px,1.4vw,26px);color:var(--white);
+  font-weight:700;letter-spacing:.04em;
+}
+.wx-cond{ color:#555;font-size:clamp(10px,.85vw,14px); }
+.wx-pickup{
+  display:flex;align-items:center;gap:10px;
+  font-size:clamp(11px,0.9vw,16px);
+}
+.wx-pickup-lbl{
+  color:#555;letter-spacing:.06em;font-size:clamp(10px,.8vw,14px);
+}
+.wx-dot{
+  width:clamp(10px,1vw,16px);height:clamp(10px,1vw,16px);
+  border-radius:50%;flex-shrink:0;
+  box-shadow:0 0 6px currentColor;
+}
+.wx-dot.ok  { background:#4aad2e;color:#4aad2e; }
+.wx-dot.warn{ background:#e84040;color:#e84040; }
+.wx-status{
+  font-size:clamp(11px,.9vw,16px);font-weight:700;letter-spacing:.06em;
+}
+.wx-status.ok  { color:#4aad2e; }
+.wx-status.warn{ color:#e84040; }
+.wx-detail{ color:#555;font-size:clamp(9px,.75vw,12px); }
+
 </style>
 </head>
 <body>
@@ -902,6 +944,22 @@ body{font-family:'Rajdhani',sans-serif;background:var(--black);color:var(--white
 
   <!-- Dashboard body (shown by default) -->
   <div class="desk-body" id="desk-dashboard">
+
+    <!-- Weather bar — auto-refreshes every 30 min -->
+    <div id="weather-bar">
+      <div class="wx-current">
+        <span class="wx-temp" id="wx-temp">--°</span>
+        <span id="wx-icon" style="font-size:clamp(16px,1.4vw,24px)">⛅</span>
+        <span class="wx-cond" id="wx-cond">Loading weather…</span>
+        <span class="wx-cond" id="wx-high" style="color:#444"></span>
+      </div>
+      <div class="wx-pickup">
+        <span class="wx-pickup-lbl">📦 PICKUP WINDOW 1–6 PM</span>
+        <div class="wx-dot ok" id="wx-dot"></div>
+        <span class="wx-status ok" id="wx-status">Checking…</span>
+        <span class="wx-detail" id="wx-detail"></span>
+      </div>
+    </div>
 
     <div class="desk-sec-row">
       <div class="desk-sec-lbl">Inventory</div>
@@ -1177,7 +1235,7 @@ function tryLogin() {
     detectLayout();
     applyRole();
     loadAll();
-    if (isDesktop) startDeskClock();
+    if (isDesktop) { startDeskClock(); initWeather(); }
   } else {
     document.getElementById("lerr").textContent="Incorrect password — please try again.";
     document.getElementById("pw-in").value="";
@@ -1285,6 +1343,105 @@ async function markFreightLoaded(row) {
     if(r?.ok) toast("Marked Loaded ✓");
     else toast("Save error — try refreshing");
   } catch(e) { toast("Connection failed"); }
+}
+
+
+// ── WEATHER WIDGET ────────────────────────────────────────────────────────
+// Open-Meteo: free, no API key, hourly forecasts for Kansas City
+const WX_LAT = 39.2919, WX_LON = -93.9743;  // Richmond, MO 64085
+const WX_PICKUP_START = 13, WX_PICKUP_END = 18;  // 1pm–6pm (24h index)
+const WX_RAIN_THRESHOLD = 30;   // % probability triggers warning
+
+const WX_ICONS = {
+  0:'☀️', 1:'🌤️', 2:'⛅', 3:'☁️',
+  45:'🌫️', 48:'🌫️',
+  51:'🌦️', 53:'🌦️', 55:'🌧️',
+  61:'🌧️', 63:'🌧️', 65:'🌧️',
+  71:'❄️', 73:'❄️', 75:'❄️',
+  80:'🌦️', 81:'🌧️', 82:'⛈️',
+  95:'⛈️', 96:'⛈️', 99:'⛈️'
+};
+const WX_DESC = {
+  0:'Clear sky', 1:'Mainly clear', 2:'Partly cloudy', 3:'Overcast',
+  45:'Fog', 48:'Fog', 51:'Light drizzle', 53:'Drizzle', 55:'Heavy drizzle',
+  61:'Light rain', 63:'Rain', 65:'Heavy rain',
+  71:'Light snow', 73:'Snow', 75:'Heavy snow',
+  80:'Rain showers', 81:'Heavy showers', 82:'Violent showers',
+  95:'Thunderstorm', 96:'Thunderstorm+hail', 99:'Thunderstorm+hail'
+};
+
+function wxIcon(code) { return WX_ICONS[code] || '🌡️'; }
+function wxDesc(code) { return WX_DESC[code] || 'Unknown'; }
+function isRainCode(code) { return (code>=51&&code<=67)||(code>=80&&code<=82)||(code>=95); }
+
+async function fetchWeather() {
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${WX_LAT}&longitude=${WX_LON}`+
+    `&hourly=temperature_2m,precipitation_probability,weathercode`+
+    `&current_weather=true&temperature_unit=fahrenheit`+
+    `&timezone=America/Chicago&forecast_days=1`;
+  try {
+    const res = await fetch(url);
+    if(!res.ok) throw new Error("HTTP "+res.status);
+    const d = await res.json();
+
+    // Current conditions
+    const cur   = d.current_weather;
+    const temp  = Math.round(cur.temperature);
+    const code  = cur.weathercode;
+
+    // Today's high = max temp from hourly
+    const highTemp = Math.round(Math.max(...d.hourly.temperature_2m));
+
+    // Check pickup window: any hour from 1pm–6pm with rain probability >= threshold
+    // or a rain weather code
+    let worstProb = 0, worstHour = -1, worstCode = 0;
+    for(let h = WX_PICKUP_START; h <= WX_PICKUP_END; h++) {
+      const prob    = d.hourly.precipitation_probability[h] || 0;
+      const hCode   = d.hourly.weathercode[h] || 0;
+      const isRain  = prob >= WX_RAIN_THRESHOLD || isRainCode(hCode);
+      if(isRain && prob > worstProb) {
+        worstProb = prob; worstHour = h; worstCode = hCode;
+      }
+    }
+
+    const hasRain = worstProb >= WX_RAIN_THRESHOLD || isRainCode(worstCode);
+    const fmt12   = h => h > 12 ? (h-12)+'pm' : h+'am';
+
+    // Update DOM
+    document.getElementById('wx-temp').textContent = temp+'°F';
+    document.getElementById('wx-icon').textContent = wxIcon(code);
+    document.getElementById('wx-cond').textContent = wxDesc(code);
+    document.getElementById('wx-high').textContent = '  High '+highTemp+'°F';
+
+    const dot    = document.getElementById('wx-dot');
+    const status = document.getElementById('wx-status');
+    const detail = document.getElementById('wx-detail');
+    if(hasRain) {
+      dot.className    = 'wx-dot warn';
+      status.className = 'wx-status warn';
+      status.textContent = '⚠ RAIN EXPECTED';
+      detail.textContent = worstHour>=0
+        ? `${worstProb}% chance around ${fmt12(worstHour)} — bring packages in`
+        : 'Rain likely during pickup window';
+    } else {
+      dot.className    = 'wx-dot ok';
+      status.className = 'wx-status ok';
+      status.textContent = 'ALL CLEAR';
+      detail.textContent = 'No rain forecast during pickup window';
+    }
+  } catch(e) {
+    console.warn('[WEATHER] Fetch failed:', e);
+    const s = document.getElementById('wx-status');
+    if(s) { s.textContent='Weather unavailable'; s.className='wx-status'; }
+  }
+}
+
+// Fetch on load and refresh every 30 minutes
+function initWeather() {
+  if(document.getElementById('weather-bar')) {
+    fetchWeather();
+    setInterval(fetchWeather, 30 * 60 * 1000);
+  }
 }
 
 async function loadAll() {
@@ -2565,7 +2722,7 @@ window.addEventListener('load', function() {
     detectLayout();
     applyRole();
     loadAll();
-    if(isDesktop) startDeskClock();
+    if(isDesktop) { startDeskClock(); initWeather(); }
   }
 });
 </script>
