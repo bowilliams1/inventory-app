@@ -1241,6 +1241,9 @@ async function loadAll() {
       data.jugs      = r.jugs      || [];
       data.freightIn  = r.freightIn  || [];
       data.freightOut = r.freightOut || [];
+      console.log("[FREIGHT] API returned freightIn:", data.freightIn.length, "items, freightOut:", data.freightOut.length, "items");
+      if(data.freightIn.length)  console.log("[FREIGHT] first incoming:", JSON.stringify(data.freightIn[0]));
+      if(data.freightOut.length) console.log("[FREIGHT] first outgoing:", JSON.stringify(data.freightOut[0]));
       // Merge image URLs from sheet into ORDER_ITEMS (if Image_URL column exists in Bo Order tab)
       if(data.boOrderItems && data.boOrderItems.length > 0) {
         data.boOrderItems.forEach(sheetItem => {
@@ -1904,7 +1907,7 @@ function renderDesktopView(view) {
       ${pending.length?`<div class="sh">Pending (${pending.length})</div><div class="pending-list card">${pending.map(o=>`<div class="pending-item"><div><div class="pending-name">${o.itemName}</div><div class="pending-qty">Qty: ${o.qty}${o.note?" · "+o.note:""}</div></div>${o.url?`<a class="amazon-link" href="${o.url}" target="_blank">View →</a>`:""}<button class="barr" onclick="markArrived(${o.row})">✓ Arrived</button></div>`).join("")}</div>`:""}
     </div>`;
   } else if(view==="freightIn") {
-    const pending = (data.freightIn||[]).filter(f=>f.pending);
+    const pending = data.freightIn||[];
     const rows = pending.length ? pending.map(f=>`
       <div class="freight-row">
         <div class="freight-info">
@@ -1921,7 +1924,7 @@ function renderDesktopView(view) {
     html=`<div style="max-width:900px"><div class="sh">Freight Incoming</div><div class="freight-list">${rows}</div></div>`;
 
   } else if(view==="freightOut") {
-    const pendingOut = (data.freightOut||[]).filter(f=>f.pending);
+    const pendingOut = data.freightOut||[];
     const rowsOut = pendingOut.length ? pendingOut.map(f=>`
       <div class="freight-row">
         <div class="freight-info">
@@ -1989,8 +1992,8 @@ function updateDeskPendingBadge() {
   }
 
   // Freight badges
-  const fiPending = (data.freightIn ||[]).filter(f=>f.pending).length;
-  const foPending = (data.freightOut||[]).filter(f=>f.pending).length;
+  const fiPending = (data.freightIn||[]).length;
+  const foPending = (data.freightOut||[]).length;
   const fiDesc  = document.getElementById('freight-in-desc');
   const foBadge = document.getElementById('freight-out-badge');
   const fiBadge = document.getElementById('freight-in-badge');
