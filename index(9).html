@@ -834,6 +834,17 @@ body{font-family:'Rajdhani',sans-serif;background:var(--black);color:var(--white
 .wx-detail{ color:#555;font-size:clamp(9px,.75vw,12px); }
 
 </style>
+
+  <!-- Prevent login flash: hide login immediately if session exists -->
+  <script>
+    (function(){
+      try {
+        var r = sessionStorage.getItem('bosh_role');
+        var ok = r && ['admin','manager','production'].indexOf(r) >= 0;
+        if(ok) document.write('<style>#login{display:none!important}</style>');
+      } catch(e){}
+    })();
+  </script>
 </head>
 <body>
 
@@ -2240,6 +2251,7 @@ function updateDeskPendingBadge() {
   if(foMore)    foMore.textContent  = foItems.length > 3 ? '+ '+(foItems.length-3)+' more — tap to view all' : (foItems.length ? 'Tap for full details →' : '');
   if(fiBadge){ fiBadge.textContent=fiItems.length||''; fiBadge.style.display=fiItems.length?'':'none'; }
   if(foBadge){ foBadge.textContent=foItems.length||''; foBadge.style.display=foItems.length?'':'none'; }
+
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -2715,14 +2727,19 @@ detectLayout();
 
 // Restore login session after a browser refresh — no re-login needed on kiosk
 window.addEventListener('load', function() {
-  const savedRole = sessionStorage.getItem('bosh_role');
-  if(savedRole && PASSWORDS[savedRole]) {
-    role = savedRole;
-    document.getElementById("login").style.display = "none";
-    detectLayout();
-    applyRole();
-    loadAll();
-    if(isDesktop) { startDeskClock(); initWeather(); }
+  try {
+    const savedRole = sessionStorage.getItem('bosh_role');
+    if(savedRole && PASSWORDS[savedRole]) {
+      role = savedRole;
+      document.getElementById("login").style.display = "none";
+      detectLayout();
+      applyRole();
+      loadAll();
+      if(isDesktop) { startDeskClock(); initWeather(); }
+    }
+  } catch(e) {
+    // sessionStorage unavailable (private mode etc.) — just show login normally
+    console.warn('Session restore failed:', e);
   }
 });
 </script>
