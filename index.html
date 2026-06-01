@@ -1908,12 +1908,23 @@ function renderTimeCard() {
       const h = parseFloat(r.totalHrs); if(!isNaN(h) && h>0) return h;
     }
     if(!r.clockIn || !r.clockOut) return null;
-    const p = t => { const d=new Date("1970-01-01 "+t); return isNaN(d)?null:d; };
-    const i=p(r.clockIn), o=p(r.clockOut); if(!i||!o) return null;
-    let ms=o-i;
-    const lo=p(r.lunchOut), li=p(r.lunchIn);
-    if(lo&&li&&li>lo) ms-=(li-lo);
-    return Math.round(Math.max(0,ms/3600000)*100)/100;
+    // Handle strings in any format: "19:52:39", "7:52 PM", "7:52:39 PM"
+    function toSecs(t) {
+      if(!t) return null;
+      const m = String(t).match(/(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?/i);
+      if(!m) return null;
+      let h=parseInt(m[1]), min=parseInt(m[2]), sec=parseInt(m[3]||0);
+      const ap=(m[4]||'').toUpperCase();
+      if(ap==='PM'&&h<12) h+=12;
+      if(ap==='AM'&&h===12) h=0;
+      return h*3600+min*60+sec;
+    }
+    const i=toSecs(r.clockIn), o=toSecs(r.clockOut);
+    if(i===null||o===null) return null;
+    let secs=o-i; if(secs<0) secs+=86400;
+    const lo=toSecs(r.lunchOut), li=toSecs(r.lunchIn);
+    if(lo!==null&&li!==null&&li>lo) secs-=(li-lo);
+    return Math.round(Math.max(0,secs/3600)*100)/100;
   }
 
   let periodTotal = 0;
