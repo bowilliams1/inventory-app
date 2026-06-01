@@ -513,7 +513,15 @@ body{font-family:'Rajdhani',sans-serif;background:var(--black);color:var(--white
 .desk-live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 1.4s infinite}
 .desk-live-txt{font-size:11px;color:var(--green);letter-spacing:.14em;font-weight:700}
 .desk-sys{font-size:10px;color:var(--green);letter-spacing:.15em;opacity:.55}
-.desk-hdr-right{text-align:right;position:relative;z-index:1}
+.desk-hdr-right{text-align:right;position:relative;z-index:1;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.desk-signout{
+  font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;
+  letter-spacing:.1em;color:#333;text-transform:uppercase;
+  background:transparent;border:1px solid #222;border-radius:5px;
+  padding:3px 10px;cursor:pointer;transition:color .2s,border-color .2s;
+  touch-action:manipulation;
+}
+.desk-signout:hover{ color:#888;border-color:#444; }
 .desk-clock{font-family:'Share Tech Mono',monospace;font-size:28px;color:var(--white);letter-spacing:.06em}
 .desk-date{font-size:11px;color:#555;letter-spacing:.08em;margin-top:3px}
 .desk-hdr-line{height:1px;background:linear-gradient(90deg,rgba(74,173,46,0.5),transparent 70%);flex-shrink:0}
@@ -950,6 +958,7 @@ html.has-session #login { display: none; }
     <div class="desk-hdr-right">
       <div class="desk-clock" id="desk-clk">--:--:--</div>
       <div class="desk-date" id="desk-date">--</div>
+      <button class="desk-signout" onclick="signOut()">Sign Out</button>
     </div>
   </div>
   <div class="desk-hdr-line"></div>
@@ -2733,6 +2742,7 @@ window.addEventListener('load', function() {
     const savedRole = sessionStorage.getItem('bosh_role');
     if(savedRole && PASSWORDS[savedRole]) {
       role = savedRole;
+      pw = PASSWORDS[savedRole];  // restore password so API calls authenticate correctly
       document.getElementById("login").style.display = "none";
       detectLayout();
       applyRole();
