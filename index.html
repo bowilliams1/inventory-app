@@ -2289,6 +2289,7 @@ function startEdit(dataKey, row, sheetName, current) {
     if(item) item.qty = val;
     renderPage(); if(deskView) renderDesktopView(deskView);
     if(!cfg()) return;
+    beginSave();
     syncStatus("busy","Saving…");
     try {
       const r = await api({action:"setInventoryQty", sheet:sheetName, row, qty:val});
@@ -2296,6 +2297,7 @@ function startEdit(dataKey, row, sheetName, current) {
       else syncStatus("err","Save error: "+(r?.error||""));
       renderPage(); if(deskView) renderDesktopView(deskView);
     } catch(e) { syncStatus("err","Save failed"); }
+    finally { endSave(); }
   });
 }
 
@@ -2333,8 +2335,11 @@ function editPallet(row, current) {
     const unitsPerPallet = oldPallets > 0 ? item.units / oldPallets : 0;
     item.pallets = val;
     if(unitsPerPallet > 0) item.units = Math.round(val * unitsPerPallet);
+    item._upp = unitsPerPallet;   // keep ratio in sync with the +/- path
+    markEdit();
     renderPallets(); if(deskView==="pallets") renderDesktopView("pallets");
     if(!cfg()) return;
+    beginSave();
     syncStatus("busy","Saving…");
     try {
       // Save pallet count to col B, units to col C
@@ -2344,6 +2349,7 @@ function editPallet(row, current) {
       }
       syncStatus("ok","Saved ✓");
     } catch(e) { syncStatus("err","Save failed"); }
+    finally { endSave(); }
   });
 }
 
@@ -2377,8 +2383,10 @@ async function chg(sheetName, dataKey, row, delta, name, size) {
   item.qty = Math.max(0, item.qty + delta);
   console.log("[CHG]", name, ":", oldQty, "→", item.qty, "(delta", delta + ")");
   toast((delta>0?"+ ":"− ") + Math.abs(delta).toLocaleString() + " × " + name);
+  markEdit();
   renderPage(); if(deskView) renderDesktopView(deskView);
   if(!cfg()) return;
+  beginSave();
   syncStatus("busy","Saving…");
   try {
     const r = await api({action:"updateInventoryQty", sheet:sheetName, row, delta});
@@ -2387,25 +2395,80 @@ async function chg(sheetName, dataKey, row, delta, name, size) {
     else syncStatus("err","Save error: "+(r?.error||"unknown"));
     await api({action:"addLog", type:delta>0?"in":"out", name, size, qty:Math.abs(delta)});
   } catch(e) { console.error("[CHG] exception:", e); syncStatus("err","Connection failed"); }
+  finally { endSave(); }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  WRITE GUARD — prevents the 45s auto-refresh from clobbering
+//  edits that are still being saved to the sheet.
+//
+//  An Apps Script round trip takes 1-3 seconds. Without this guard the
+//  refresh timer can fire mid-save and overwrite local state with the
+//  stale server value, making a +/- change appear to "bounce back".
+// ═══════════════════════════════════════════════════════════
+let pendingSaves = 0;
+let lastEditAt   = 0;
+
+function beginSave() { pendingSaves++; lastEditAt = Date.now(); }
+function endSave()   { pendingSaves = Math.max(0, pendingSaves - 1); lastEditAt = Date.now(); }
+function markEdit()  { lastEditAt = Date.now(); }
+
+// Safe to pull fresh server data only when nothing is in flight AND the user
+// has not touched anything in the last 6 seconds.
+function safeToRefresh() {
+  return pendingSaves === 0 && (Date.now() - lastEditAt) > 6000;
+}
+
+// ── Pallet saves are DEBOUNCED ────────────────────────────────────────────
+// Five rapid +/- taps used to fire five overlapping requests that raced each
+// other, so whichever landed last won — often not the final value. Now the
+// screen updates instantly on every tap and exactly ONE save fires once the
+// tapping stops, carrying the final number.
+const palletSaveTimers = {};
+
+function schedulePalletSave(row) {
+  clearTimeout(palletSaveTimers[row]);
+  palletSaveTimers[row] = setTimeout(function() { savePalletNow(row); }, 800);
+}
+
+async function savePalletNow(row) {
+  const item = data.pallets?.find(p => p.row === row);
+  if(!item) return;
+  beginSave();
+  syncStatus("busy","Saving…");
+  try {
+    const r1 = await api({action:"setInventoryQty", sheet:"Pallets Available", row, qty:item.pallets, col:2});
+    const r2 = await api({action:"setInventoryQty", sheet:"Pallets Available", row, qty:item.units,   col:3});
+    console.log("[PALLET] saved row", row, "pallets=", item.pallets, "units=", item.units, r1, r2);
+    if(r1?.ok && r2?.ok) syncStatus("ok","Saved ✓");
+    else syncStatus("err","Save failed — try again");
+  } catch(e) {
+    console.error("[PALLET] save failed:", e);
+    syncStatus("err","Save failed");
+  } finally {
+    endSave();
+  }
 }
 
 async function chgPallet(row, delta) {
-  const item=data.pallets?.find(p=>p.row===row);
+  const item = data.pallets?.find(p => p.row === row);
   if(!item) return;
-  // Auto-calculate units proportionally when pallets change
-  const oldPallets=item.pallets;
-  const unitsPerPallet=oldPallets>0 ? item.units/oldPallets : 0;
-  item.pallets=Math.max(0,item.pallets+delta);
-  if(unitsPerPallet>0) item.units=Math.round(item.pallets*unitsPerPallet);
-  toast((delta>0?"Added":"Removed")+" 1 pallet → "+item.pallets+" pallets remaining");
-  renderPage(); if(deskView==="pallets") renderDesktopView("pallets");
+
+  // Lock in the units-per-pallet ratio the FIRST time this item is touched.
+  // Recomputing it on every tap loses the ratio once pallets hits 0.
+  if(item._upp === undefined) {
+    item._upp = item.pallets > 0 ? item.units / item.pallets : 0;
+  }
+
+  item.pallets = Math.max(0, item.pallets + delta);
+  if(item._upp > 0) item.units = Math.round(item.pallets * item._upp);
+
+  toast((delta > 0 ? "Added" : "Removed") + " 1 pallet → " + item.pallets + " pallets");
+  markEdit();                                   // hold off the auto-refresh
+  renderPage(); if(deskView === "pallets") renderDesktopView("pallets");
   if(!cfg()) return;
   syncStatus("busy","Saving…");
-  try {
-    await api({action:"setQtyDirect",sheet:"Pallets Available",row,qty:item.pallets,col:2});
-    await api({action:"setQtyDirect",sheet:"Pallets Available",row,qty:item.units,col:3});
-    syncStatus("ok","Saved ✓");
-  } catch(e){ syncStatus("err","Save failed"); }
+  schedulePalletSave(row);                      // one save after tapping stops
 }
 
 async function useItem(sheetName, dataKey, row, name, size) {
@@ -2603,17 +2666,26 @@ async function pinPress(k) {
   }
 }
 
+// localDateStr: LOCAL calendar date as yyyy-MM-dd.
+// Do NOT use toISOString() — that returns UTC, so any punch after ~6pm Central
+// rolls to the next calendar day and stops matching the server's row.
+function localDateStr(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
 async function doPunch(punchType) {
   const labels={in:"Clocked in",lunch_out:"Lunch started",lunch_in:"Back from lunch",out:"Clocked out"};
-  toast(`✓ ${labels[punchType]}`);
   // Always initialize if null — never let null block the clock flow
   if(!tcTimeCard) {
-    tcTimeCard={rows:[],currentStatus:"not_in",today:new Date().toISOString().slice(0,10)};
+    tcTimeCard={rows:[],currentStatus:"not_in",today:localDateStr(new Date())};
   }
   const now=new Date();
   const timeStr=now.toLocaleTimeString();
   if(!tcTimeCard.rows) tcTimeCard.rows=[];
-  const todayStr=now.toISOString().slice(0,10);
+  const todayStr=localDateStr(now);           // local date, matches the server
   let todayRow=tcTimeCard.rows.find(r=>r.date===todayStr);
   if(!todayRow){ todayRow={date:todayStr,clockIn:"",lunchOut:"",lunchIn:"",clockOut:"",totalHrs:""}; tcTimeCard.rows.push(todayRow); }
   if(punchType==="in")         { todayRow.clockIn=timeStr; tcTimeCard.currentStatus="clocked_in"; }
@@ -2621,8 +2693,36 @@ async function doPunch(punchType) {
   if(punchType==="lunch_in")   { todayRow.lunchIn=timeStr; tcTimeCard.currentStatus="clocked_in"; }
   if(punchType==="out")        { todayRow.clockOut=timeStr; tcTimeCard.currentStatus="clocked_out"; }
   renderTimeClock(); if(deskView==="timeclock") renderDesktopView("timeclock");
-  if(!cfg()) return;
-  try { await api({action:"timePunch",name:tcEmployee.name,punchType}); } catch(e){}
+  if(!cfg()) { toast(`✓ ${labels[punchType]}`); return; }
+
+  syncStatus("busy","Saving punch…");
+  try {
+    const r = await api({action:"timePunch", name:tcEmployee.name, punchType});
+    console.log("[PUNCH]", punchType, "server response:", r);
+    if(r && r.ok) {
+      toast(`✓ ${labels[punchType]}`);
+      syncStatus("ok","Saved ✓");
+      // Pull the authoritative card back from the sheet so the screen always
+      // matches what was actually stored (including calculated Total Hours).
+      try {
+        const card = await api({action:"getTimeCard", name:tcEmployee.name});
+        if(card && card.ok) {
+          tcTimeCard = card;
+          renderTimeClock();
+          if(deskView==="timeclock") renderDesktopView("timeclock");
+        }
+      } catch(e) { console.warn("[PUNCH] card refresh failed", e); }
+    } else {
+      // Surface the real reason instead of silently pretending it worked
+      const msg = (r && r.error) ? r.error : "Punch not saved — check connection";
+      toast("⚠ " + msg);
+      syncStatus("err", msg);
+    }
+  } catch(e) {
+    console.error("[PUNCH] exception:", e);
+    toast("⚠ Punch not saved — connection failed");
+    syncStatus("err","Punch failed");
+  }
 }
 
 function openTimeOff() { document.getElementById("toModal").classList.add("on"); }
@@ -2735,11 +2835,29 @@ function toast(msg) {
 //  AUTO REFRESH (every 45s)
 // ═══════════════════════════════════════════════════════════
 setInterval(()=>{
-  if(cfg()&&role){
-    api({action:"getAll"}).then(r=>{
-      if(r?.ok){ data=r; renderAll(); syncStatus("ok","Live · synced just now"); updateDeskPendingBadge(); }
-    }).catch(()=>{});
+  if(!cfg() || !role) return;
+  // Never pull fresh data while a save is in flight or immediately after an
+  // edit — that is what caused +/- changes to bounce back to the old number.
+  if(!safeToRefresh()) {
+    console.log("[REFRESH] skipped — save in flight or recent edit");
+    return;
   }
+  api({action:"getAll"}).then(r=>{
+    if(r?.ok){
+      // Re-check: an edit may have started while this request was in flight
+      if(!safeToRefresh()) {
+        console.log("[REFRESH] discarded — user edited during fetch");
+        return;
+      }
+      data = r;
+      data.jugs       = r.jugs       || [];
+      data.freightIn  = r.freightIn  || [];
+      data.freightOut = r.freightOut || [];
+      renderAll();
+      syncStatus("ok","Live · synced just now");
+      updateDeskPendingBadge();
+    }
+  }).catch(()=>{});
 },45000);
 
 // ═══════════════════════════════════════════════════════════
