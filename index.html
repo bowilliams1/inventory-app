@@ -1466,6 +1466,44 @@ function initWeather() {
   }
 }
 
+// Merge Bo Order rows from the sheet into the tile list.
+// The 12 built-in tiles keep their emoji and order. Any sheet row whose name
+// is not already a tile is appended with a default 📦 emoji, so Bo can add
+// items in the spreadsheet and they appear in the app — no code changes.
+// Idempotent: safe to call on every load and every 45s refresh.
+// Emojis for known sheet-added items, keyed by lowercase name.
+// Priority when a tile is created: sheet Emoji column (E) → this map → 📦
+const SHEET_ITEM_EMOJIS = {
+  "spartan 12 x 18 bags": "🛍️",
+  "sharpies":             "🖊️",
+  "garage door lube":     "🛢️"
+};
+
+function mergeBoOrderItems() {
+  const sheetItems = data.boOrderItems || [];
+  if(!sheetItems.length) return;
+  const have = new Set(ORDER_ITEMS.map(o => o.name.trim().toLowerCase()));
+  let added = 0;
+  sheetItems.forEach(si => {
+    const key = String(si.name || "").trim().toLowerCase();
+    if(!key) return;
+    if(have.has(key)) {
+      const t = ORDER_ITEMS.find(o => o.name.trim().toLowerCase() === key);
+      if(t) {
+        if(si.url)      t.url = si.url;          // sheet URL wins
+        if(si.emoji)    t.emoji = si.emoji;      // Emoji column can restyle any tile
+        if(si.imageUrl) t.imageUrl = si.imageUrl;
+      }
+      return;
+    }
+    const emoji = si.emoji || SHEET_ITEM_EMOJIS[key] || "📦";
+    ORDER_ITEMS.push({ name: si.name.trim(), emoji: emoji, url: si.url || "" });
+    have.add(key);
+    added++;
+  });
+  if(added) console.log("[BO ORDER] merged", added, "new item(s) from the sheet — total tiles:", ORDER_ITEMS.length);
+}
+
 async function loadAll() {
   if(!cfg()) { syncStatus("err","Script URL not set — see setup instructions"); loadOffline(); return; }
   syncStatus("busy","Loading…");
@@ -1479,16 +1517,7 @@ async function loadAll() {
       console.log("[FREIGHT] API returned freightIn:", data.freightIn.length, "items, freightOut:", data.freightOut.length, "items");
       if(data.freightIn.length)  console.log("[FREIGHT] first incoming:", JSON.stringify(data.freightIn[0]));
       if(data.freightOut.length) console.log("[FREIGHT] first outgoing:", JSON.stringify(data.freightOut[0]));
-      // Merge image URLs from sheet into ORDER_ITEMS (if Image_URL column exists in Bo Order tab)
-      if(data.boOrderItems && data.boOrderItems.length > 0) {
-        data.boOrderItems.forEach(sheetItem => {
-          const appItem = ORDER_ITEMS.find(o => o.name === sheetItem.name);
-          if(appItem && sheetItem.imageUrl) {
-            appItem.imageUrl = sheetItem.imageUrl;
-            console.log("[BO ORDER] Image URL loaded from sheet for:", sheetItem.name);
-          }
-        });
-      }
+      mergeBoOrderItems();
       syncStatus("ok","Live · synced just now");
       renderAll();
     }
@@ -2330,24 +2359,22 @@ function editPallet(row, current) {
   const label = (item ? item.name : 'PALLETS').toUpperCase() + ' — PALLET COUNT';
   openNumpad(label, current, async (val) => {
     if(!item) return;
-    // Recalculate units proportionally
-    const oldPallets = item.pallets;
-    const unitsPerPallet = oldPallets > 0 ? item.units / oldPallets : 0;
-    item.pallets = val;
-    if(unitsPerPallet > 0) item.units = Math.round(val * unitsPerPallet);
-    item._upp = unitsPerPallet;   // keep ratio in sync with the +/- path
+    item.pallets = val;                 // units column is never modified
     markEdit();
     renderPallets(); if(deskView==="pallets") renderDesktopView("pallets");
     if(!cfg()) return;
     beginSave();
     syncStatus("busy","Saving…");
     try {
-      // Save pallet count to col B, units to col C
-      await api({action:"setInventoryQty", sheet:"Pallets Available", row, qty:val, col:2});
-      if(unitsPerPallet > 0) {
-        await api({action:"setInventoryQty", sheet:"Pallets Available", row, qty:item.units, col:3});
+      const r = await api({action:"setPalletCount", row, pallets:val});
+      console.log("[PALLET] keypad row", row, "sent pallets=", val, "→", r);
+      if(r?.ok) {
+        item.pallets = r.pallets;
+        renderPallets(); if(deskView==="pallets") renderDesktopView("pallets");
+        syncStatus("ok","Saved ✓");
+      } else {
+        syncStatus("err", r?.error || "Save failed");
       }
-      syncStatus("ok","Saved ✓");
     } catch(e) { syncStatus("err","Save failed"); }
     finally { endSave(); }
   });
@@ -2359,11 +2386,18 @@ async function commitPallet(row) {
   const val=Math.max(0,parseFloat(el.value)||0);
   const item=data.pallets?.find(p=>p.row===row);
   if(item) item.pallets=val;
+  markEdit();
   renderPage(); if(deskView==="pallets") renderDesktopView("pallets");
   if(!cfg()) return;
+  beginSave();
   syncStatus("busy","Saving…");
-  try { await api({action:"setQtyDirect",sheet:"Pallets Available",row,qty:val,col:2}); syncStatus("ok","Saved ✓"); }
+  try {
+    const r = await api({action:"setPalletCount", row, pallets:val});
+    if(r?.ok){ if(item) item.pallets = r.pallets; syncStatus("ok","Saved ✓"); }
+    else syncStatus("err", r?.error || "Save failed");
+  }
   catch(e){ syncStatus("err","Save failed"); }
+  finally { endSave(); }
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -2431,17 +2465,25 @@ function schedulePalletSave(row) {
   palletSaveTimers[row] = setTimeout(function() { savePalletNow(row); }, 800);
 }
 
+// Sends ONLY the pallet count. The server derives units from the stored
+// Units Per Pallet ratio and writes both cells atomically, then returns what
+// it actually wrote. The browser never calculates or sends units, so units
+// can never be written into the pallet column.
 async function savePalletNow(row) {
   const item = data.pallets?.find(p => p.row === row);
   if(!item) return;
   beginSave();
   syncStatus("busy","Saving…");
   try {
-    const r1 = await api({action:"setInventoryQty", sheet:"Pallets Available", row, qty:item.pallets, col:2});
-    const r2 = await api({action:"setInventoryQty", sheet:"Pallets Available", row, qty:item.units,   col:3});
-    console.log("[PALLET] saved row", row, "pallets=", item.pallets, "units=", item.units, r1, r2);
-    if(r1?.ok && r2?.ok) syncStatus("ok","Saved ✓");
-    else syncStatus("err","Save failed — try again");
+    const r = await api({action:"setPalletCount", row, pallets:item.pallets});
+    console.log("[PALLET] row", row, "sent pallets=", item.pallets, "→", r);
+    if(r?.ok) {
+      item.pallets = r.pallets;   // authoritative; units column is never touched
+      renderPallets(); if(deskView==="pallets") renderDesktopView("pallets");
+      syncStatus("ok","Saved ✓");
+    } else {
+      syncStatus("err", r?.error || "Save failed — try again");
+    }
   } catch(e) {
     console.error("[PALLET] save failed:", e);
     syncStatus("err","Save failed");
@@ -2454,14 +2496,9 @@ async function chgPallet(row, delta) {
   const item = data.pallets?.find(p => p.row === row);
   if(!item) return;
 
-  // Lock in the units-per-pallet ratio the FIRST time this item is touched.
-  // Recomputing it on every tap loses the ratio once pallets hits 0.
-  if(item._upp === undefined) {
-    item._upp = item.pallets > 0 ? item.units / item.pallets : 0;
-  }
-
+  // Pallet count only. The units column belongs to the spreadsheet and is
+  // never modified by the app.
   item.pallets = Math.max(0, item.pallets + delta);
-  if(item._upp > 0) item.units = Math.round(item.pallets * item._upp);
 
   toast((delta > 0 ? "Added" : "Removed") + " 1 pallet → " + item.pallets + " pallets");
   markEdit();                                   // hold off the auto-refresh
@@ -2853,6 +2890,7 @@ setInterval(()=>{
       data.jugs       = r.jugs       || [];
       data.freightIn  = r.freightIn  || [];
       data.freightOut = r.freightOut || [];
+      mergeBoOrderItems();          // new Bo Order rows appear within 45s
       renderAll();
       syncStatus("ok","Live · synced just now");
       updateDeskPendingBadge();
