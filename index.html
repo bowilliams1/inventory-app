@@ -850,7 +850,7 @@ html.has-session #login { display: none; }
   <script>
     try {
       var _sr = sessionStorage.getItem('bosh_role');
-      if(_sr && ['admin','manager','production'].indexOf(_sr) >= 0)
+      if(_sr && sessionStorage.getItem('bosh_inv_token') && ['admin','manager','production'].indexOf(_sr) >= 0)
         document.documentElement.classList.add('has-session');
     } catch(e){}
   </script>
@@ -1174,7 +1174,8 @@ html.has-session #login { display: none; }
 // To get new URL: Deploy → New deployment (then update this line and re-upload to GitHub)
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxl1fj5ogM-b8evPXTR2CMvug90n4VJ9FfS8JOcMt9zQB-VbfeWeJoACmG5fy-xeI56/exec";
 
-const PASSWORDS = { admin:"admin2025", manager:"manager2025", production:"production2025" };
+// Passwords are checked by the server (Script Properties). This page never contains one (2026-09-28).
+const TOKEN_KEY = 'bosh_inv_token';
 
 const ROLL_SIZE = 700; // labels per roll
 
@@ -1186,11 +1187,8 @@ const CLOSURE_STEPS = {
   "green gal caps": 1500
 };
 
-const EMPLOYEES = [
-  { name:"Morris Hunt",      pin:"1001", initials:"MH" },
-  { name:"Nathan Shore",     pin:"1002", initials:"NS" },
-  { name:"Clayton Williams", pin:"1003", initials:"CW" }
-];
+// Time-clock names come from the Employees tab after sign-in. PINs never reach this page.
+let EMPLOYEES = [];
 
 const ORDER_ITEMS = [
   { name:"2 Inch Drum Faucet (Brown)",  emoji:"🪣", url:"https://www.amazon.com/dp/B0BL3GRT85" },
@@ -1210,7 +1208,7 @@ const ORDER_ITEMS = [
 // ═══════════════════════════════════════════════════════════
 //  STATE
 // ═══════════════════════════════════════════════════════════
-let role="", pw="", isDesktop=false;
+let role="", token="", isDesktop=false;
 let activePage="labels";
 let data={ labels:[], jugs:[], bags:[], boxes:[], pallets:[], log:[], orders:[], boOrderItems:[], freightIn:[], freightOut:[] };
 let pendingDelete=null;
@@ -1246,33 +1244,61 @@ window.addEventListener("resize", () => { detectLayout(); if(isDesktop) startDes
 // ═══════════════════════════════════════════════════════════
 document.getElementById("pw-in").addEventListener("keydown", e => { if(e.key==="Enter") tryLogin(); });
 
-function tryLogin() {
+let loginBusy = false;
+async function tryLogin() {
+  if (loginBusy) return;
   const r = document.getElementById("role-sel").value;
   const v = document.getElementById("pw-in").value;
-  if (v === PASSWORDS[r]) {
-    role=r; pw=v;
-    sessionStorage.setItem('bosh_role', r);   // persist through refreshes
+  const err = document.getElementById("lerr");
+  if (!v) { err.textContent = "Enter your password."; return; }
+  loginBusy = true;
+  err.textContent = "Checking…";
+  const res = await api({action:"login", role:r, pw:v}, true);
+  loginBusy = false;
+  if (res && res.ok && res.token) {
+    role = res.role; token = res.token;
+    try { sessionStorage.setItem('bosh_role', role); sessionStorage.setItem(TOKEN_KEY, token); } catch(e) {}
+    err.textContent = "";
+    document.getElementById("pw-in").value = "";
     document.getElementById("login").style.display="none";
-    detectLayout();
-    applyRole();
-    loadAll();
-    if (isDesktop) { startDeskClock(); initWeather(); }
+    startSession();
   } else {
-    document.getElementById("lerr").textContent="Incorrect password — please try again.";
+    err.textContent = (res && res.error) || "Can't reach the server — check the connection and try again.";
     document.getElementById("pw-in").value="";
     document.getElementById("pw-in").focus();
   }
 }
 
-function signOut() {
-  role=""; pw="";
-  sessionStorage.removeItem('bosh_role');
+// Everything that happens once signed in (fresh sign-in or a restored pass).
+function startSession() {
+  detectLayout();
+  applyRole();
+  loadAll();
+  loadEmployees();
+  if (isDesktop) { startDeskClock(); initWeather(); }
+}
+
+// Names + initials for the time clock, from the Employees tab.
+async function loadEmployees() {
+  const r = await api({action:"getEmployees"});
+  if (r && r.ok && Array.isArray(r.employees)) {
+    EMPLOYEES = r.employees;
+    if (typeof tcStep !== "undefined" && tcStep === "employees") {
+      renderTimeClock(); if (deskView === "timeclock") renderDesktopView("timeclock");
+    }
+  }
+}
+
+function signOut(message) {
+  if (token) api({action:"logout", token: token}, true);   // end this pass on the server too (best effort)
+  role=""; token="";
+  try { sessionStorage.removeItem('bosh_role'); sessionStorage.removeItem(TOKEN_KEY); } catch(e) {}
   document.documentElement.classList.remove('has-session'); // allow login to show
   document.getElementById("login").style.display="flex";
   document.getElementById("mobile-app").style.display="none";
   document.getElementById("desktop-app").style.display="none";
   document.getElementById("pw-in").value="";
-  document.getElementById("lerr").textContent="";
+  document.getElementById("lerr").textContent = message || "";
   clearDeskTimeout();
 }
 
@@ -1286,12 +1312,18 @@ function applyRole() {
 // ═══════════════════════════════════════════════════════════
 function cfg() { return SCRIPT_URL && !SCRIPT_URL.includes("PASTE_YOUR"); }
 
-async function api(params) {
+async function api(params, noPass) {
   if(!cfg()) return null;
-  params.pw=pw;
+  const body = Object.assign({}, params);
+  if (!noPass) body.token = token;
   try {
-    const r = await fetch(SCRIPT_URL+"?"+new URLSearchParams(params).toString());
-    return await r.json();
+    // No custom headers: a plain text body keeps this a "simple" request Apps Script accepts.
+    const r = await fetch(SCRIPT_URL, {method:"POST", body: JSON.stringify(body)});
+    const j = await r.json();
+    if (j && j.auth === false && !noPass && role) {
+      signOut("Please sign in again.");   // pass ended (expired, signed out, or password changed)
+    }
+    return j;
   } catch(e) { return null; }
 }
 
@@ -1509,6 +1541,7 @@ async function loadAll() {
   syncStatus("busy","Loading…");
   try {
     const r = await api({action:"getAll"});
+    if(r && r.auth === false) return;   // signed out: the sign-in screen is showing
     if(r?.ok) {
       data=r;
       data.jugs      = r.jugs      || [];
@@ -1878,6 +1911,10 @@ function renderTimeClock() {
 }
 
 function renderEmpList() {
+  if (!EMPLOYEES.length) {
+    loadEmployees();
+    return `<div class="tc-section"><div class="tc-title">Who are you?</div><div class="emp-status-txt" style="padding:12px 4px">Loading the crew list…</div></div>`;
+  }
   return `<div class="tc-section">
     <div class="tc-title">Who are you?</div>
     <div class="emp-list">
@@ -2649,56 +2686,30 @@ async function pinPress(k) {
 
   if(tcPin.length===4) {
     const enteredPin = tcPin;
-    // Check against local EMPLOYEES array first
-    const emp = EMPLOYEES.find(e => e.name===tcEmployee?.name && e.pin===enteredPin);
-
-    if(emp) {
-      // Local PIN matched — go straight to timecard, no API block
+    const showPinError = msg => {
+      const errEl = document.getElementById("pin-err");
+      if(errEl) errEl.textContent = msg;
       tcPin = "";
-      if(cfg()) {
-        // Best-effort: try to load pay-period time card from Google Sheet
-        try {
-          const tc = await api({action:"getTimeCard", name:tcEmployee.name});
-          if(tc?.ok) tcTimeCard = tc;
-        } catch(e) {}
-      }
+      setTimeout(()=>{ renderTimeClock(); if(deskView==="timeclock") renderDesktopView("timeclock"); }, 900);
+    };
+    if(!cfg()) { showPinError("No connection — can't check the PIN."); return; }
+    const errEl0 = document.getElementById("pin-err");
+    if(errEl0) errEl0.textContent = "Checking…";
+    // PINs live only in the Employees tab, so the server checks every one.
+    const r = await api({action:"verifyPin", name:tcEmployee.name, pin:enteredPin});
+    if(r?.ok) {
+      tcPin = "";
+      try {
+        const tc = await api({action:"getTimeCard", name:tcEmployee.name});
+        if(tc?.ok) tcTimeCard = tc;
+      } catch(e) {}
       tcStep = "timecard";
       renderTimeClock();
       if(deskView==="timeclock") renderDesktopView("timeclock");
-
-    } else if(cfg()) {
-      // Not in local list — try API verification (covers custom employees added later)
-      try {
-        const r = await api({action:"verifyPin", name:tcEmployee.name, pin:enteredPin});
-        if(r?.ok) {
-          tcPin = "";
-          try {
-            const tc = await api({action:"getTimeCard", name:tcEmployee.name});
-            if(tc?.ok) tcTimeCard = tc;
-          } catch(e) {}
-          tcStep = "timecard";
-          renderTimeClock();
-          if(deskView==="timeclock") renderDesktopView("timeclock");
-        } else {
-          const errEl = document.getElementById("pin-err");
-          if(errEl) errEl.textContent = "Incorrect PIN — try again.";
-          tcPin = "";
-          setTimeout(()=>{ renderTimeClock(); if(deskView==="timeclock") renderDesktopView("timeclock"); }, 900);
-        }
-      } catch(e) {
-        // API error — wrong PIN since local check also failed
-        const errEl = document.getElementById("pin-err");
-        if(errEl) errEl.textContent = "Incorrect PIN — try again.";
-        tcPin = "";
-        setTimeout(()=>{ renderTimeClock(); if(deskView==="timeclock") renderDesktopView("timeclock"); }, 900);
-      }
-
+    } else if(r) {
+      showPinError("Incorrect PIN — try again.");
     } else {
-      // Offline and no local match
-      const errEl = document.getElementById("pin-err");
-      if(errEl) errEl.textContent = "Incorrect PIN — try again.";
-      tcPin = "";
-      setTimeout(()=>{ renderTimeClock(); if(deskView==="timeclock") renderDesktopView("timeclock"); }, 900);
+      showPinError("No connection — can't check the PIN.");
     }
   }
 }
@@ -2907,14 +2918,12 @@ detectLayout();
 window.addEventListener('load', function() {
   try {
     const savedRole = sessionStorage.getItem('bosh_role');
-    if(savedRole && PASSWORDS[savedRole]) {
+    const savedToken = sessionStorage.getItem(TOKEN_KEY);
+    if(savedRole && savedToken) {
       role = savedRole;
-      pw = PASSWORDS[savedRole];  // restore password so API calls authenticate correctly
+      token = savedToken;  // the server checks this pass on the first request
       document.getElementById("login").style.display = "none";
-      detectLayout();
-      applyRole();
-      loadAll();
-      if(isDesktop) { startDeskClock(); initWeather(); }
+      startSession();
     }
   } catch(e) {
     // sessionStorage unavailable (private mode etc.) — just show login normally
