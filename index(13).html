@@ -1466,44 +1466,6 @@ function initWeather() {
   }
 }
 
-// Merge Bo Order rows from the sheet into the tile list.
-// The 12 built-in tiles keep their emoji and order. Any sheet row whose name
-// is not already a tile is appended with a default 📦 emoji, so Bo can add
-// items in the spreadsheet and they appear in the app — no code changes.
-// Idempotent: safe to call on every load and every 45s refresh.
-// Emojis for known sheet-added items, keyed by lowercase name.
-// Priority when a tile is created: sheet Emoji column (E) → this map → 📦
-const SHEET_ITEM_EMOJIS = {
-  "spartan 12 x 18 bags": "🛍️",
-  "sharpies":             "🖊️",
-  "garage door lube":     "🛢️"
-};
-
-function mergeBoOrderItems() {
-  const sheetItems = data.boOrderItems || [];
-  if(!sheetItems.length) return;
-  const have = new Set(ORDER_ITEMS.map(o => o.name.trim().toLowerCase()));
-  let added = 0;
-  sheetItems.forEach(si => {
-    const key = String(si.name || "").trim().toLowerCase();
-    if(!key) return;
-    if(have.has(key)) {
-      const t = ORDER_ITEMS.find(o => o.name.trim().toLowerCase() === key);
-      if(t) {
-        if(si.url)      t.url = si.url;          // sheet URL wins
-        if(si.emoji)    t.emoji = si.emoji;      // Emoji column can restyle any tile
-        if(si.imageUrl) t.imageUrl = si.imageUrl;
-      }
-      return;
-    }
-    const emoji = si.emoji || SHEET_ITEM_EMOJIS[key] || "📦";
-    ORDER_ITEMS.push({ name: si.name.trim(), emoji: emoji, url: si.url || "" });
-    have.add(key);
-    added++;
-  });
-  if(added) console.log("[BO ORDER] merged", added, "new item(s) from the sheet — total tiles:", ORDER_ITEMS.length);
-}
-
 async function loadAll() {
   if(!cfg()) { syncStatus("err","Script URL not set — see setup instructions"); loadOffline(); return; }
   syncStatus("busy","Loading…");
@@ -1517,7 +1479,16 @@ async function loadAll() {
       console.log("[FREIGHT] API returned freightIn:", data.freightIn.length, "items, freightOut:", data.freightOut.length, "items");
       if(data.freightIn.length)  console.log("[FREIGHT] first incoming:", JSON.stringify(data.freightIn[0]));
       if(data.freightOut.length) console.log("[FREIGHT] first outgoing:", JSON.stringify(data.freightOut[0]));
-      mergeBoOrderItems();
+      // Merge image URLs from sheet into ORDER_ITEMS (if Image_URL column exists in Bo Order tab)
+      if(data.boOrderItems && data.boOrderItems.length > 0) {
+        data.boOrderItems.forEach(sheetItem => {
+          const appItem = ORDER_ITEMS.find(o => o.name === sheetItem.name);
+          if(appItem && sheetItem.imageUrl) {
+            appItem.imageUrl = sheetItem.imageUrl;
+            console.log("[BO ORDER] Image URL loaded from sheet for:", sheetItem.name);
+          }
+        });
+      }
       syncStatus("ok","Live · synced just now");
       renderAll();
     }
@@ -2890,7 +2861,6 @@ setInterval(()=>{
       data.jugs       = r.jugs       || [];
       data.freightIn  = r.freightIn  || [];
       data.freightOut = r.freightOut || [];
-      mergeBoOrderItems();          // new Bo Order rows appear within 45s
       renderAll();
       syncStatus("ok","Live · synced just now");
       updateDeskPendingBadge();

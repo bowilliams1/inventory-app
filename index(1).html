@@ -513,23 +513,14 @@ body{font-family:'Rajdhani',sans-serif;background:var(--black);color:var(--white
 .desk-live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 1.4s infinite}
 .desk-live-txt{font-size:11px;color:var(--green);letter-spacing:.14em;font-weight:700}
 .desk-sys{font-size:10px;color:var(--green);letter-spacing:.15em;opacity:.55}
-.desk-hdr-right{text-align:right;position:relative;z-index:1;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
-.desk-signout{
-  font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;
-  letter-spacing:.1em;color:#666;text-transform:uppercase;
-  background:transparent;border:1px solid #444;border-radius:5px;
-  padding:3px 10px;cursor:pointer;transition:color .2s,border-color .2s;
-  touch-action:manipulation;
-}
-.desk-signout:hover{ color:#aaa;border-color:#666; }
+.desk-hdr-right{text-align:right;position:relative;z-index:1}
 .desk-clock{font-family:'Share Tech Mono',monospace;font-size:28px;color:var(--white);letter-spacing:.06em}
 .desk-date{font-size:11px;color:#555;letter-spacing:.08em;margin-top:3px}
 .desk-hdr-line{height:1px;background:linear-gradient(90deg,rgba(74,173,46,0.5),transparent 70%);flex-shrink:0}
 
 /* Desktop main area */
 .desk-body{
-  flex:1;display:flex;flex-direction:column;overflow:hidden;
-  padding:16px 24px 12px;
+  flex:1;overflow:hidden;padding:20px 24px;
   background:var(--black);position:relative;
 }
 .desk-body::before{
@@ -537,20 +528,19 @@ body{font-family:'Rajdhani',sans-serif;background:var(--black);color:var(--white
   background-image:linear-gradient(rgba(74,173,46,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(74,173,46,0.025) 1px,transparent 1px);
   background-size:36px 36px;pointer-events:none;
 }
-.desk-sec-row{display:flex;align-items:center;gap:12px;margin-bottom:clamp(4px,.4vh,8px);flex-shrink:0;position:relative;z-index:1}
+.desk-sec-row{display:flex;align-items:center;gap:12px;margin-bottom:12px;position:relative;z-index:1}
 .desk-sec-lbl{font-size:10px;font-weight:700;letter-spacing:.18em;color:var(--green);opacity:.7;white-space:nowrap}
 .desk-sec-line{flex:1;height:1px;background:linear-gradient(90deg,rgba(74,173,46,0.25),transparent)}
 
 /* Desktop inventory tiles - icon + name ONLY */
-.desk-inv-grid{display:grid;grid-template-columns:repeat(5,1fr);align-items:stretch;gap:clamp(6px,.8vw,12px);flex:3;min-height:0;margin-bottom:clamp(6px,.7vh,12px);position:relative;z-index:1}
+.desk-inv-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px;position:relative;z-index:1}
 .desk-tile{
   background:#111110;border:1px solid rgba(74,173,46,0.12);
-  border-radius:12px;padding:clamp(16px,2vh,36px) clamp(10px,1.2vw,20px);
+  border-radius:12px;padding:22px 14px 18px;
   position:relative;cursor:pointer;overflow:hidden;
   transition:border-color .2s,background .2s,transform .2s;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:clamp(6px,1vh,14px);
-  height:100%;min-height:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
+  min-height:140px;
 }
 .desk-tile::before,.desk-tile::after{content:'';position:absolute;width:11px;height:11px;border-color:rgba(74,173,46,0.5);border-style:solid}
 .desk-tile::before{top:6px;left:6px;border-width:1.5px 0 0 1.5px}
@@ -561,32 +551,29 @@ body{font-family:'Rajdhani',sans-serif;background:var(--black);color:var(--white
 .dtb2{background:linear-gradient(90deg,#2a6aee,#6090f0)}
 .dtb3{background:linear-gradient(90deg,var(--lo),#f0c060)}
 .dtb4{background:linear-gradient(90deg,#888,#bbb)}
-.desk-tile-ico{flex-shrink:0;display:flex;align-items:center;justify-content:center}
-.desk-tile-ico svg{width:clamp(36px,3.2vw,62px);height:auto}
+.desk-tile-ico{flex-shrink:0}
 .desk-tile-name{
-  font-size:clamp(13px,1.3vw,26px);font-weight:700;letter-spacing:.12em;
+  font-size:12px;font-weight:700;letter-spacing:.12em;
   color:var(--silver);text-transform:uppercase;text-align:center;opacity:.8;
 }
 
 /* Desktop operations tiles */
-.desk-ops-grid{display:grid;grid-template-columns:repeat(3,1fr);align-items:stretch;gap:clamp(6px,.8vw,12px);flex:2;min-height:0;position:relative;z-index:1}
+.desk-ops-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;position:relative;z-index:1}
 .desk-ops-tile{
   background:#111110;border:1px solid rgba(74,173,46,0.12);
-  border-radius:12px;padding:clamp(14px,1.8vh,30px) clamp(16px,1.5vw,28px);
+  border-radius:12px;padding:18px 20px;
   position:relative;cursor:pointer;overflow:hidden;
   transition:border-color .2s,background .2s,transform .2s;
-  display:flex;align-items:center;gap:clamp(14px,1.5vw,28px);
-  height:100%;min-height:0;
+  display:flex;align-items:center;gap:18px;min-height:96px;
 }
 .desk-ops-tile::before,.desk-ops-tile::after{content:'';position:absolute;width:11px;height:11px;border-color:rgba(74,173,46,0.5);border-style:solid}
 .desk-ops-tile::before{top:6px;left:6px;border-width:1.5px 0 0 1.5px}
 .desk-ops-tile::after{bottom:6px;right:6px;border-width:0 1.5px 1.5px 0}
 .desk-ops-tile:hover{border-color:rgba(74,173,46,0.45);background:#151513;transform:translateY(-3px);box-shadow:0 12px 32px rgba(0,0,0,.5)}
 .desk-ops-tile:active{transform:translateY(-1px)}
-.desk-ops-ico{flex-shrink:0;width:clamp(36px,3.2vw,60px);height:clamp(36px,3.2vw,60px);display:flex;align-items:center;justify-content:center}
-.desk-ops-ico svg{width:100%;height:auto}
-.desk-ops-name{font-size:clamp(14px,1.3vw,26px);font-weight:700;letter-spacing:.08em;color:var(--silver);text-transform:uppercase;margin-bottom:clamp(3px,.4vh,8px)}
-.desk-ops-desc{font-size:clamp(11px,0.9vw,18px);color:#484844;line-height:1.6}
+.desk-ops-ico{flex-shrink:0;width:60px;height:60px;display:flex;align-items:center;justify-content:center}
+.desk-ops-name{font-size:14px;font-weight:700;letter-spacing:.08em;color:var(--silver);text-transform:uppercase;margin-bottom:4px}
+.desk-ops-desc{font-size:11px;color:#484844;line-height:1.6}
 .desk-pending{position:absolute;top:10px;right:10px;background:var(--lo);color:#0a0a08;font-size:9px;font-weight:800;padding:3px 9px;border-radius:20px;letter-spacing:.05em}
 
 /* Desktop full-screen function view */
@@ -609,251 +596,7 @@ body{font-family:'Rajdhani',sans-serif;background:var(--black);color:var(--white
 .desk-fs-title{font-size:18px;font-weight:700;letter-spacing:.06em;color:var(--white);text-transform:uppercase}
 .desk-fs-body{flex:1;overflow-y:auto;padding:20px 24px}
 .desk-timeout{font-size:11px;color:var(--silver);opacity:.4;margin-left:auto;font-family:'Share Tech Mono',monospace}
-
-/* Session restore — hide login before first paint without !important */
-html.has-session #login { display: none; }
-
-/* ── IN-APP NUMERIC KEYPAD (Mac Mini touchscreen + all touch devices) ── */
-#numpad-overlay{
-  display:none;position:fixed;inset:0;z-index:9999;
-  background:rgba(0,0,0,0.75);
-  align-items:center;justify-content:center;
-}
-#numpad-overlay.open{display:flex;}
-#numpad-box{
-  background:#1a1a18;border-radius:18px;padding:24px;
-  min-width:320px;box-shadow:0 8px 40px rgba(0,0,0,0.7);
-  border:1px solid #333;
-}
-#numpad-label{
-  font-family:'Rajdhani',sans-serif;font-size:14px;
-  color:#888;text-align:center;margin-bottom:8px;letter-spacing:1px;
-}
-#numpad-display{
-  font-family:'Share Tech Mono',monospace;font-size:42px;
-  color:#fff;text-align:center;background:#111;
-  border-radius:10px;padding:12px 20px;margin-bottom:18px;
-  min-width:200px;letter-spacing:2px;
-  border:2px solid #333;
-}
-.numpad-grid{
-  display:grid;grid-template-columns:repeat(3,1fr);gap:10px;
-}
-.npbtn{
-  font-family:'Rajdhani',sans-serif;font-size:28px;font-weight:700;
-  background:#2a2a28;color:#fff;border:none;border-radius:12px;
-  padding:20px 0;cursor:pointer;touch-action:manipulation;
-  transition:background .1s;user-select:none;
-}
-.npbtn:active,.npbtn:hover{background:#3a3a38;}
-.npbtn.np-del{font-size:22px;color:#aaa;}
-.npbtn.np-ok{background:#3d9126;color:#fff;font-size:26px;}
-.npbtn.np-ok:active,.npbtn.np-ok:hover{background:#4aad2e;}
-.npbtn.np-cancel{background:#2a1a1a;color:#c44;font-size:20px;}
-.npbtn.np-cancel:active{background:#3a2a2a;}
-
-
-/* ── IMPROVED TIME CARD ──────────────────────────────────────────── */
-.tc-card{ background:#111110; border:1px solid rgba(74,173,46,0.2); border-radius:12px; padding:16px; margin:12px 0; }
-.tc-card-hdr{ display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; padding-bottom:10px; border-bottom:1px solid #222; }
-.tc-card-hdr .name{ font-size:13px; font-weight:700; letter-spacing:.1em; color:var(--green); }
-.tc-card-hdr .period{ font-size:10px; color:#555; letter-spacing:.06em; }
-.tc-row{ border-bottom:1px solid #1a1a18; padding:10px 4px; }
-.tc-row:last-of-type{ border-bottom:none; }
-.tc-today{ border-left:3px solid var(--green); padding-left:8px; }
-.tc-day-hdr{ display:flex; justify-content:space-between; align-items:center; margin-bottom:7px; }
-.tc-date{ font-size:12px; font-weight:700; color:var(--white); letter-spacing:.05em; }
-.tc-day-hrs{ font-family:'Share Tech Mono',monospace; font-size:13px; color:var(--green); font-weight:700; }
-.tc-punch{ display:flex; justify-content:space-between; align-items:center; padding:2px 0; }
-.tc-punch-lbl{ font-size:10px; color:#555; letter-spacing:.08em; text-transform:uppercase; min-width:70px; }
-.tc-punch-val{ font-family:'Share Tech Mono',monospace; font-size:11px; color:var(--silver); }
-.tc-punch-empty{ font-size:10px; color:#333; font-style:italic; padding:2px 0; }
-.tc-period-total{ display:flex; justify-content:space-between; align-items:center; margin-top:12px; padding-top:12px; border-top:2px solid rgba(74,173,46,0.3); }
-.tc-period-total span:first-child{ font-size:11px; font-weight:700; letter-spacing:.1em; color:#666; text-transform:uppercase; }
-.tc-total-hrs{ font-family:'Share Tech Mono',monospace; font-size:18px; color:var(--green); font-weight:700; }
-
-
-/* ── FREIGHT INCOMING / OUTGOING ──────────────────────────────────── */
-.freight-list{ display:flex; flex-direction:column; gap:10px; }
-.freight-row{
-  background:#111110; border:1px solid rgba(74,173,46,0.15);
-  border-radius:12px; padding:16px 18px;
-  display:flex; align-items:center; gap:16px;
-  min-height:clamp(80px,6vh,120px);   /* ≥ 1.5 inches on 27" screen */
-}
-.freight-row:hover{ border-color:rgba(74,173,46,0.3); }
-.freight-info{ flex:1; display:flex; flex-direction:column; gap:5px; }
-.freight-carrier{
-  font-size:clamp(14px,1.2vw,22px); font-weight:700;
-  color:var(--white); letter-spacing:.04em;
-}
-.freight-items{
-  font-size:clamp(12px,0.9vw,17px); color:#888; line-height:1.4;
-}
-.freight-meta{
-  display:flex; gap:20px; margin-top:4px; flex-wrap:wrap;
-}
-.freight-meta-item{
-  display:flex; flex-direction:column; gap:2px;
-}
-.freight-meta-lbl{
-  font-size:9px; letter-spacing:.12em; color:#444;
-  text-transform:uppercase; font-weight:700;
-}
-.freight-meta-val{
-  font-size:clamp(11px,0.85vw,15px); color:var(--silver);
-  font-family:'Share Tech Mono',monospace;
-}
-.freight-btn{
-  flex-shrink:0;
-  background:#1a2e1a; border:1px solid rgba(74,173,46,0.4);
-  color:var(--green); border-radius:10px;
-  font-family:'Rajdhani',sans-serif; font-size:clamp(13px,1vw,18px);
-  font-weight:700; letter-spacing:.08em;
-  padding:clamp(10px,1.2vh,18px) clamp(14px,1.2vw,24px);
-  cursor:pointer; touch-action:manipulation;
-  transition:background .15s,border-color .15s;
-  min-width:clamp(90px,7vw,130px);
-}
-.freight-btn:hover{ background:#243824; border-color:var(--green); }
-.freight-btn:active{ background:#1a3a1a; }
-.freight-empty{
-  text-align:center; padding:40px 20px;
-  color:#333; font-size:14px; letter-spacing:.06em;
-}
-
-
-.desk-freight-grid{
-  display:grid;grid-template-columns:1fr 1fr;align-items:stretch;
-  gap:clamp(6px,.8vw,14px);
-  flex:1.5;min-height:0;  /* proportional share alongside inv(3) + ops(2) */
-}
-.desk-freight-grid .desk-ops-tile{
-  height:100%;min-height:0;
-}
-
-
-/* ── FREIGHT DASHBOARD TILES (mini-list view) ────────────────────────── */
-.desk-freight-tile{
-  background:#111110;border:1px solid rgba(74,173,46,0.15);
-  border-radius:12px;padding:14px 16px;cursor:pointer;
-  height:100%;min-height:0;
-  display:flex;flex-direction:column;gap:6px;overflow:hidden;
-  transition:border-color .2s,background .2s;
-  position:relative;
-}
-.desk-freight-tile:hover{ border-color:rgba(74,173,46,0.4); background:#131311; }
-.dft-header{
-  display:flex;justify-content:space-between;align-items:center;
-  flex-shrink:0;
-}
-.dft-title{
-  font-family:'Rajdhani',sans-serif;font-size:clamp(13px,1.1vw,20px);
-  font-weight:700;letter-spacing:.12em;color:var(--silver);
-  text-transform:uppercase;
-}
-.dft-date{
-  font-size:clamp(9px,0.75vw,13px);color:#484844;
-  font-family:'Share Tech Mono',monospace;flex-shrink:0;
-  margin-bottom:2px;
-}
-.dft-divider{
-  height:1px;background:rgba(74,173,46,0.12);flex-shrink:0;
-}
-.dft-list{
-  flex:1;display:flex;flex-direction:column;
-  gap:0;overflow:hidden;  /* gap handled inside .dft-item padding */
-  justify-content:flex-start;
-  border:1px solid rgba(255,255,255,0.05);
-  border-radius:8px;overflow:hidden;
-}
-.dft-item{
-  display:grid;
-  /* Carrier | Items | Date/extra — single line per shipment */
-  grid-template-columns: minmax(0,1.3fr) minmax(0,2.2fr) minmax(0,1fr);
-  gap:clamp(8px,1.2vw,20px);
-  align-items:center;
-  padding:clamp(7px,.8vh,12px) clamp(8px,.8vw,14px);
-  border-bottom:1px solid rgba(255,255,255,0.04);
-  flex-shrink:0;
-}
-.dft-item:last-of-type{ border-bottom:none; }
-.dft-item-carrier{
-  font-size:clamp(12px,1vw,18px);font-weight:700;
-  color:var(--white);white-space:nowrap;
-  overflow:hidden;text-overflow:ellipsis;
-}
-.dft-item-detail{
-  font-size:clamp(11px,0.9vw,16px);color:#585852;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-}
-.dft-item-date{
-  font-family:'Share Tech Mono',monospace;
-  font-size:clamp(10px,0.85vw,15px);color:var(--green);
-  white-space:nowrap;text-align:right;opacity:.85;
-}
-.dft-empty{
-  font-size:clamp(10px,0.85vw,14px);color:#333;
-  font-style:italic;padding:8px 0;
-}
-.dft-more{
-  font-size:clamp(9px,0.75vw,12px);color:#333;
-  text-align:right;letter-spacing:.05em;margin-top:auto;
-  flex-shrink:0;
-}
-
-
-/* ── WEATHER WIDGET ─────────────────────────────────────────────────── */
-#weather-bar{
-  display:flex;align-items:center;justify-content:space-between;
-  flex-shrink:0;
-  background:rgba(74,173,46,0.04);
-  border:1px solid rgba(74,173,46,0.1);
-  border-radius:8px;padding:6px 16px;
-  margin-bottom:clamp(4px,.5vh,8px);
-  font-family:'Share Tech Mono',monospace;
-  gap:20px;
-}
-.wx-current{
-  display:flex;align-items:center;gap:14px;
-  font-size:clamp(11px,0.9vw,16px);color:#777;
-}
-.wx-temp{
-  font-size:clamp(16px,1.4vw,26px);color:var(--white);
-  font-weight:700;letter-spacing:.04em;
-}
-.wx-cond{ color:#555;font-size:clamp(10px,.85vw,14px); }
-.wx-pickup{
-  display:flex;align-items:center;gap:10px;
-  font-size:clamp(11px,0.9vw,16px);
-}
-.wx-pickup-lbl{
-  color:#555;letter-spacing:.06em;font-size:clamp(10px,.8vw,14px);
-}
-.wx-dot{
-  width:clamp(10px,1vw,16px);height:clamp(10px,1vw,16px);
-  border-radius:50%;flex-shrink:0;
-  box-shadow:0 0 6px currentColor;
-}
-.wx-dot.ok  { background:#4aad2e;color:#4aad2e; }
-.wx-dot.warn{ background:#e84040;color:#e84040; }
-.wx-status{
-  font-size:clamp(11px,.9vw,16px);font-weight:700;letter-spacing:.06em;
-}
-.wx-status.ok  { color:#4aad2e; }
-.wx-status.warn{ color:#e84040; }
-.wx-detail{ color:#555;font-size:clamp(9px,.75vw,12px); }
-
 </style>
-
-  <!-- Session check: add class to html element BEFORE first paint -->
-  <script>
-    try {
-      var _sr = sessionStorage.getItem('bosh_role');
-      if(_sr && ['admin','manager','production'].indexOf(_sr) >= 0)
-        document.documentElement.classList.add('has-session');
-    } catch(e){}
-  </script>
 </head>
 <body>
 
@@ -958,29 +701,12 @@ html.has-session #login { display: none; }
     <div class="desk-hdr-right">
       <div class="desk-clock" id="desk-clk">--:--:--</div>
       <div class="desk-date" id="desk-date">--</div>
-      <button class="desk-signout" onclick="signOut()">Sign Out</button>
     </div>
   </div>
   <div class="desk-hdr-line"></div>
 
   <!-- Dashboard body (shown by default) -->
   <div class="desk-body" id="desk-dashboard">
-
-    <!-- Weather bar — auto-refreshes every 30 min -->
-    <div id="weather-bar">
-      <div class="wx-current">
-        <span class="wx-temp" id="wx-temp">--°</span>
-        <span id="wx-icon" style="font-size:clamp(16px,1.4vw,24px)">⛅</span>
-        <span class="wx-cond" id="wx-cond">Loading weather…</span>
-        <span class="wx-cond" id="wx-high" style="color:#444"></span>
-      </div>
-      <div class="wx-pickup">
-        <span class="wx-pickup-lbl">📦 PICKUP WINDOW 1–6 PM</span>
-        <div class="wx-dot ok" id="wx-dot"></div>
-        <span class="wx-status ok" id="wx-status">Checking…</span>
-        <span class="wx-detail" id="wx-detail"></span>
-      </div>
-    </div>
 
     <div class="desk-sec-row">
       <div class="desk-sec-lbl">Inventory</div>
@@ -1074,41 +800,8 @@ html.has-session #login { display: none; }
         </div>
       </div>
 
-    </div><!-- end desk-ops-grid -->
-
-    <!-- Freight Section -->
-    <div class="desk-sec-row">
-      <div class="desk-sec-lbl">Freight</div>
-      <div class="desk-sec-line"></div>
     </div>
-    <div class="desk-freight-grid">
-
-      <!-- Freight Incoming Tile — mini-list view -->
-      <div class="desk-freight-tile" ontouchstart="" onclick="openDesktopView('freightIn')">
-        <div class="dft-header">
-          <div class="dft-title">📦 Freight Incoming</div>
-          <div class="desk-pending" id="freight-in-badge" style="display:none"></div>
-        </div>
-        <div class="dft-date" id="freight-in-date"></div>
-        <div class="dft-divider"></div>
-        <div class="dft-list" id="freight-in-preview"><div class="dft-empty">Loading…</div></div>
-        <div class="dft-more" id="freight-in-more"></div>
-      </div>
-
-      <!-- Freight Outgoing Tile — mini-list view -->
-      <div class="desk-freight-tile" ontouchstart="" onclick="openDesktopView('freightOut')">
-        <div class="dft-header">
-          <div class="dft-title">🚛 Freight Outgoing</div>
-          <div class="desk-pending" id="freight-out-badge" style="display:none"></div>
-        </div>
-        <div class="dft-date" id="freight-out-date"></div>
-        <div class="dft-divider"></div>
-        <div class="dft-list" id="freight-out-preview"><div class="dft-empty">Loading…</div></div>
-        <div class="dft-more" id="freight-out-more"></div>
-      </div>
-
-    </div><!-- end freight grid -->
-  </div><!-- end desk-dashboard -->
+  </div>
 
   <!-- Desktop Full-Screen View (slides over dashboard) -->
   <div class="desk-fullscreen" id="desk-fullscreen">
@@ -1178,12 +871,12 @@ const PASSWORDS = { admin:"admin2025", manager:"manager2025", production:"produc
 
 const ROLL_SIZE = 700; // labels per roll
 
-// Step sizes per +/- press — keys MUST be lowercase (getStep lowercases item.name before lookup)
+// Closure step sizes: units removed per +/- press
 const CLOSURE_STEPS = {
-  "white gal jugs": 336,
-  "clear gal jugs": 384,
-  "white gal caps": 1500,
-  "green gal caps": 1500
+  "White Gal Jugs": 336,
+  "Clear Gal Jugs": 384,
+  "White Gal Caps": 1500,
+  "Green Gal Caps": 1500
 };
 
 const EMPLOYEES = [
@@ -1212,7 +905,7 @@ const ORDER_ITEMS = [
 // ═══════════════════════════════════════════════════════════
 let role="", pw="", isDesktop=false;
 let activePage="labels";
-let data={ labels:[], jugs:[], bags:[], boxes:[], pallets:[], log:[], orders:[], boOrderItems:[], freightIn:[], freightOut:[] };
+let data={ labels:[], closures:[], bags:[], boxes:[], pallets:[], log:[], orders:[] };
 let pendingDelete=null;
 let labelSearch="", labelFilter="all";
 
@@ -1251,12 +944,11 @@ function tryLogin() {
   const v = document.getElementById("pw-in").value;
   if (v === PASSWORDS[r]) {
     role=r; pw=v;
-    sessionStorage.setItem('bosh_role', r);   // persist through refreshes
     document.getElementById("login").style.display="none";
     detectLayout();
     applyRole();
     loadAll();
-    if (isDesktop) { startDeskClock(); initWeather(); }
+    if (isDesktop) startDeskClock();
   } else {
     document.getElementById("lerr").textContent="Incorrect password — please try again.";
     document.getElementById("pw-in").value="";
@@ -1266,8 +958,6 @@ function tryLogin() {
 
 function signOut() {
   role=""; pw="";
-  sessionStorage.removeItem('bosh_role');
-  document.documentElement.classList.remove('has-session'); // allow login to show
   document.getElementById("login").style.display="flex";
   document.getElementById("mobile-app").style.display="none";
   document.getElementById("desktop-app").style.display="none";
@@ -1302,208 +992,6 @@ function syncStatus(s,m) {
   if(txt) txt.textContent=m;
 }
 
-
-// ── IN-APP NUMERIC KEYPAD ─────────────────────────────────────────────────
-let _npVal = '0';
-let _npLabel = '';
-let _npCallback = null;
-
-function openNumpad(label, currentValue, callback) {
-  _npVal = String(parseInt(currentValue) || 0);
-  _npLabel = label;
-  _npCallback = callback;
-  document.getElementById('numpad-label').textContent = label;
-  document.getElementById('numpad-display').textContent = _npVal;
-  document.getElementById('numpad-overlay').classList.add('open');
-}
-
-function npPress(key) {
-  if(key === '⌫') {
-    _npVal = _npVal.length > 1 ? _npVal.slice(0,-1) : '0';
-  } else {
-    // Replace leading zero
-    _npVal = (_npVal === '0') ? key : _npVal + key;
-    // Cap at 7 digits (9,999,999 max)
-    if(_npVal.length > 7) _npVal = _npVal.slice(0,7);
-  }
-  document.getElementById('numpad-display').textContent = _npVal;
-}
-
-function npConfirm() {
-  const val = Math.max(0, parseInt(_npVal) || 0);
-  document.getElementById('numpad-overlay').classList.remove('open');
-  if(_npCallback) { _npCallback(val); _npCallback = null; }
-}
-
-function npCancel() {
-  document.getElementById('numpad-overlay').classList.remove('open');
-  _npCallback = null;
-}
-
-
-// ── FREIGHT ACTIONS ───────────────────────────────────────────────────────
-async function markFreightReceived(row) {
-  // Remove from local data immediately
-  data.freightIn = (data.freightIn||[]).filter(f => f.row !== row);
-  if(deskView==="freightIn") renderDesktopView("freightIn");
-  renderAll();
-  if(!cfg()) return;
-  try {
-    const r = await api({action:"markFreightReceived", row});
-    if(r?.ok) toast("Marked Received ✓");
-    else toast("Save error — try refreshing");
-  } catch(e) { toast("Connection failed"); }
-}
-
-async function markFreightLoaded(row) {
-  data.freightOut = (data.freightOut||[]).filter(f => f.row !== row);
-  if(deskView==="freightOut") renderDesktopView("freightOut");
-  renderAll();
-  if(!cfg()) return;
-  try {
-    const r = await api({action:"markFreightLoaded", row});
-    if(r?.ok) toast("Marked Loaded ✓");
-    else toast("Save error — try refreshing");
-  } catch(e) { toast("Connection failed"); }
-}
-
-
-// ── WEATHER WIDGET ────────────────────────────────────────────────────────
-// Open-Meteo: free, no API key, hourly forecasts for Kansas City
-const WX_LAT = 39.2919, WX_LON = -93.9743;  // Richmond, MO 64085
-const WX_PICKUP_START = 13, WX_PICKUP_END = 18;  // 1pm–6pm (24h index)
-const WX_RAIN_THRESHOLD = 30;   // % probability triggers warning
-
-const WX_ICONS = {
-  0:'☀️', 1:'🌤️', 2:'⛅', 3:'☁️',
-  45:'🌫️', 48:'🌫️',
-  51:'🌦️', 53:'🌦️', 55:'🌧️',
-  61:'🌧️', 63:'🌧️', 65:'🌧️',
-  71:'❄️', 73:'❄️', 75:'❄️',
-  80:'🌦️', 81:'🌧️', 82:'⛈️',
-  95:'⛈️', 96:'⛈️', 99:'⛈️'
-};
-const WX_DESC = {
-  0:'Clear sky', 1:'Mainly clear', 2:'Partly cloudy', 3:'Overcast',
-  45:'Fog', 48:'Fog', 51:'Light drizzle', 53:'Drizzle', 55:'Heavy drizzle',
-  61:'Light rain', 63:'Rain', 65:'Heavy rain',
-  71:'Light snow', 73:'Snow', 75:'Heavy snow',
-  80:'Rain showers', 81:'Heavy showers', 82:'Violent showers',
-  95:'Thunderstorm', 96:'Thunderstorm+hail', 99:'Thunderstorm+hail'
-};
-
-function wxIcon(code) { return WX_ICONS[code] || '🌡️'; }
-function wxDesc(code) { return WX_DESC[code] || 'Unknown'; }
-function isRainCode(code) { return (code>=51&&code<=67)||(code>=80&&code<=82)||(code>=95); }
-
-async function fetchWeather() {
-  const url = `https://api.open-meteo.com/v1/forecast?latitude=${WX_LAT}&longitude=${WX_LON}`+
-    `&hourly=temperature_2m,precipitation_probability,weathercode`+
-    `&current_weather=true&temperature_unit=fahrenheit`+
-    `&timezone=America/Chicago&forecast_days=1`;
-  try {
-    const res = await fetch(url);
-    if(!res.ok) throw new Error("HTTP "+res.status);
-    const d = await res.json();
-
-    // Current conditions
-    const cur   = d.current_weather;
-    const temp  = Math.round(cur.temperature);
-    const code  = cur.weathercode;
-
-    // Today's high = max temp from hourly
-    const highTemp = Math.round(Math.max(...d.hourly.temperature_2m));
-
-    // Check pickup window: any hour from 1pm–6pm with rain probability >= threshold
-    // or a rain weather code
-    let worstProb = 0, worstHour = -1, worstCode = 0;
-    for(let h = WX_PICKUP_START; h <= WX_PICKUP_END; h++) {
-      const prob    = d.hourly.precipitation_probability[h] || 0;
-      const hCode   = d.hourly.weathercode[h] || 0;
-      const isRain  = prob >= WX_RAIN_THRESHOLD || isRainCode(hCode);
-      if(isRain && prob > worstProb) {
-        worstProb = prob; worstHour = h; worstCode = hCode;
-      }
-    }
-
-    const hasRain = worstProb >= WX_RAIN_THRESHOLD || isRainCode(worstCode);
-    const fmt12   = h => h > 12 ? (h-12)+'pm' : h+'am';
-
-    // Update DOM
-    document.getElementById('wx-temp').textContent = temp+'°F';
-    document.getElementById('wx-icon').textContent = wxIcon(code);
-    document.getElementById('wx-cond').textContent = wxDesc(code);
-    document.getElementById('wx-high').textContent = '  High '+highTemp+'°F';
-
-    const dot    = document.getElementById('wx-dot');
-    const status = document.getElementById('wx-status');
-    const detail = document.getElementById('wx-detail');
-    if(hasRain) {
-      dot.className    = 'wx-dot warn';
-      status.className = 'wx-status warn';
-      status.textContent = '⚠ RAIN EXPECTED';
-      detail.textContent = worstHour>=0
-        ? `${worstProb}% chance around ${fmt12(worstHour)} — bring packages in`
-        : 'Rain likely during pickup window';
-    } else {
-      dot.className    = 'wx-dot ok';
-      status.className = 'wx-status ok';
-      status.textContent = 'ALL CLEAR';
-      detail.textContent = 'No rain forecast during pickup window';
-    }
-  } catch(e) {
-    console.warn('[WEATHER] Fetch failed:', e);
-    const s = document.getElementById('wx-status');
-    if(s) { s.textContent='Weather unavailable'; s.className='wx-status'; }
-  }
-}
-
-// Fetch on load and refresh every 30 minutes
-function initWeather() {
-  if(document.getElementById('weather-bar')) {
-    fetchWeather();
-    setInterval(fetchWeather, 30 * 60 * 1000);
-  }
-}
-
-// Merge Bo Order rows from the sheet into the tile list.
-// The 12 built-in tiles keep their emoji and order. Any sheet row whose name
-// is not already a tile is appended with a default 📦 emoji, so Bo can add
-// items in the spreadsheet and they appear in the app — no code changes.
-// Idempotent: safe to call on every load and every 45s refresh.
-// Emojis for known sheet-added items, keyed by lowercase name.
-// Priority when a tile is created: sheet Emoji column (E) → this map → 📦
-const SHEET_ITEM_EMOJIS = {
-  "spartan 12 x 18 bags": "🛍️",
-  "sharpies":             "🖊️",
-  "garage door lube":     "🛢️"
-};
-
-function mergeBoOrderItems() {
-  const sheetItems = data.boOrderItems || [];
-  if(!sheetItems.length) return;
-  const have = new Set(ORDER_ITEMS.map(o => o.name.trim().toLowerCase()));
-  let added = 0;
-  sheetItems.forEach(si => {
-    const key = String(si.name || "").trim().toLowerCase();
-    if(!key) return;
-    if(have.has(key)) {
-      const t = ORDER_ITEMS.find(o => o.name.trim().toLowerCase() === key);
-      if(t) {
-        if(si.url)      t.url = si.url;          // sheet URL wins
-        if(si.emoji)    t.emoji = si.emoji;      // Emoji column can restyle any tile
-        if(si.imageUrl) t.imageUrl = si.imageUrl;
-      }
-      return;
-    }
-    const emoji = si.emoji || SHEET_ITEM_EMOJIS[key] || "📦";
-    ORDER_ITEMS.push({ name: si.name.trim(), emoji: emoji, url: si.url || "" });
-    have.add(key);
-    added++;
-  });
-  if(added) console.log("[BO ORDER] merged", added, "new item(s) from the sheet — total tiles:", ORDER_ITEMS.length);
-}
-
 async function loadAll() {
   if(!cfg()) { syncStatus("err","Script URL not set — see setup instructions"); loadOffline(); return; }
   syncStatus("busy","Loading…");
@@ -1511,13 +999,18 @@ async function loadAll() {
     const r = await api({action:"getAll"});
     if(r?.ok) {
       data=r;
-      data.jugs      = r.jugs      || [];
-      data.freightIn  = r.freightIn  || [];
-      data.freightOut = r.freightOut || [];
-      console.log("[FREIGHT] API returned freightIn:", data.freightIn.length, "items, freightOut:", data.freightOut.length, "items");
-      if(data.freightIn.length)  console.log("[FREIGHT] first incoming:", JSON.stringify(data.freightIn[0]));
-      if(data.freightOut.length) console.log("[FREIGHT] first outgoing:", JSON.stringify(data.freightOut[0]));
-      mergeBoOrderItems();
+      // Handle both old API (returns 'closures') and new API (returns 'jugs')
+      data.jugs = data.jugs || data.closures || [];
+      // Merge image URLs from sheet into ORDER_ITEMS (if Image_URL column exists in Bo Order tab)
+      if(data.boOrderItems && data.boOrderItems.length > 0) {
+        data.boOrderItems.forEach(sheetItem => {
+          const appItem = ORDER_ITEMS.find(o => o.name === sheetItem.name);
+          if(appItem && sheetItem.imageUrl) {
+            appItem.imageUrl = sheetItem.imageUrl;
+            console.log("[BO ORDER] Image URL loaded from sheet for:", sheetItem.name);
+          }
+        });
+      }
       syncStatus("ok","Live · synced just now");
       renderAll();
     }
@@ -1669,8 +1162,6 @@ function renderAll() {
   renderChips();
   renderPage();
   updateDeskPendingBadge();
-  // Re-render open desktop view so data appears immediately after loadAll completes
-  if(deskView) renderDesktopView(deskView);
 }
 
 function renderChips() {
@@ -1682,7 +1173,7 @@ function renderChips() {
   el.innerHTML=`
     <div class="chip"><div class="cv">${totalLabels.toLocaleString()}</div><div class="cl">Total Labels</div></div>
     <div class="chip"><div class="cv">${data.labels.length}</div><div class="cl">Label SKUs</div></div>
-    <div class="chip"><div class="cv">${totalPallets}</div><div class="cl">Pallets Available</div></div>
+    <div class="chip"><div class="cv">${totalPallets}</div><div class="cl">Pallets On Hand</div></div>
     ${pendingOrders>0?`<div class="chip"><div class="cv" style="color:var(--lo)">${pendingOrders}</div><div class="cl">Pending Orders</div></div>`:""}
   `;
 }
@@ -1768,7 +1259,7 @@ function addLabelForm() {
 function renderSection(dataKey, title, sheetName, hasStep) {
   const el = document.getElementById("pg-"+dataKey);
   const items = data[dataKey]||[];
-  let h = `<div class="sh">${title}</div><div class="card">${items.map(i=>sectionItemHTML(i,dataKey,sheetName,hasStep)).join("")||'<div class="empty">No items.</div>'}</div>`;
+  let h=`<div class="sh">${title}</div><div class="card">${items.map(i=>sectionItemHTML(i,dataKey,sheetName,hasStep)).join("")||'<div class="empty">No items.</div>'}</div>`;
   if(role==="admin") {
     const pfx=dataKey.slice(0,3);
     h+=`<div class="aform"><h3>Add Item</h3>
@@ -1810,10 +1301,7 @@ function sectionItemHTML(item, dataKey, sheetName, hasStep) {
     <button class="buse" onclick="useItemDirect('${sheetName}','${dataKey}',${item.row},'${esc(item.name)}','${esc(item.size)}')">USE</button>
   </div>`;
   let adm="";
-  // Remove button only for Labels — Jugs/Caps, Bags, Boxes are fixed inventory
-  if(isAdmin && dataKey!=="jugs" && dataKey!=="bags" && dataKey!=="boxes") {
-    adm=`<div class="adm-row"><button class="bsm del" onclick="confirmDel('${sheetName}','${dataKey}',${item.row},'${esc(item.name)}')">🗑 Remove</button></div>`;
-  }
+  if(isAdmin) adm=`<div class="adm-row"><button class="bsm del" onclick="confirmDel('${sheetName}','${dataKey}',${item.row},'${esc(item.name)}')">🗑 Remove</button></div>`;
   return `<div class="item">
     <div class="ib">
       <div class="iname" title="${item.name}">${item.name}</div>
@@ -1832,7 +1320,7 @@ function renderPallets() {
   const items = data.pallets||[];
   const totP = items.reduce((s,p)=>s+p.pallets,0);
   const totU = items.reduce((s,p)=>s+p.units,0);
-  let h=`<div class="sh">Pallets Available &nbsp;·&nbsp; ${totP} pallets &nbsp;·&nbsp; ${totU.toLocaleString()} units</div>`;
+  let h=`<div class="sh">Pallets On Hand &nbsp;·&nbsp; ${totP} pallets &nbsp;·&nbsp; ${totU.toLocaleString()} units</div>`;
   h+=`<div class="card">${items.map(p=>palletItemHTML(p)).join("")||'<div class="empty">No pallets.</div>'}</div>`;
   if(role==="admin") h+=`<div class="aform"><h3>Add Product</h3>
     <div class="ff"><label>Product name</label><input id="pal-name" placeholder="e.g. Weed Killer 4-Pack"></div>
@@ -1849,7 +1337,7 @@ function palletItemHTML(p) {
   const isAdmin=role==="admin", isMgr=role==="manager";
   const palDisp=p.pallets%1===0?p.pallets:p.pallets.toFixed(1);
   let adm="";
-  // No Remove button — Pallets Available is fixed inventory
+  if(isAdmin) adm=`<div class="adm-row"><button class="bsm del" onclick="confirmDel('Pallets','pallets',${p.row},'${esc(p.name)}')">🗑 Remove</button></div>`;
   return `<div class="pallet-item">
     <div class="pi-body">
       <div class="pi-name" title="${p.name}">${p.name}</div>
@@ -1910,101 +1398,45 @@ function renderPinPad() {
 }
 
 function renderTimeCard() {
-  const emp  = tcEmployee;
-  const card = tcTimeCard || {rows:[], currentStatus:"not_in", today:"", periodStart:""};
-  const s    = card.currentStatus;
-  const canIn     = s==="not_in"    || s==="clocked_out";
+  const emp = tcEmployee;
+  const card = tcTimeCard || {rows:[], currentStatus:"not_in", today:""};
+  const s = card.currentStatus;
+  const canIn     = s==="not_in" || s==="clocked_out";
   const canLunchO = s==="clocked_in";
   const canLunchI = s==="at_lunch";
   const canOut    = s==="clocked_in";
 
-  // "2026-05-31" → "Sat May 31"
-  function fmtDate(str) {
-    if(!str) return "";
-    const d = new Date(str + "T00:00:00");
-    return isNaN(d) ? str : d.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"});
-  }
-  // "08:00:00 AM" → "8:00 AM"
-  function fmtTime(t) {
-    if(!t) return "";
-    const m = t.match(/(\d+):(\d+)(?::\d+)?\s*(AM|PM)?/i);
-    if(!m) return t;
-    return `${parseInt(m[1])}:${m[2]}${m[3]?" "+m[3].toUpperCase():""}`;
-  }
-  // Calculate daily hours client-side (works before clock-out saves to sheet)
-  function dailyHrs(r) {
-    if(r.totalHrs !== "" && r.totalHrs !== undefined && r.totalHrs !== null) {
-      const h = parseFloat(r.totalHrs); if(!isNaN(h) && h>0) return h;
-    }
-    if(!r.clockIn || !r.clockOut) return null;
-    // Handle strings in any format: "19:52:39", "7:52 PM", "7:52:39 PM"
-    function toSecs(t) {
-      if(!t) return null;
-      const m = String(t).match(/(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?/i);
-      if(!m) return null;
-      let h=parseInt(m[1]), min=parseInt(m[2]), sec=parseInt(m[3]||0);
-      const ap=(m[4]||'').toUpperCase();
-      if(ap==='PM'&&h<12) h+=12;
-      if(ap==='AM'&&h===12) h=0;
-      return h*3600+min*60+sec;
-    }
-    const i=toSecs(r.clockIn), o=toSecs(r.clockOut);
-    if(i===null||o===null) return null;
-    let secs=o-i; if(secs<0) secs+=86400;
-    const lo=toSecs(r.lunchOut), li=toSecs(r.lunchIn);
-    if(lo!==null&&li!==null&&li>lo) secs-=(li-lo);
-    return Math.round(Math.max(0,secs/3600)*100)/100;
-  }
-
-  let periodTotal = 0;
-  let rowsHtml = "";
-
-  if(card.rows && card.rows.length) {
-    rowsHtml = card.rows.map(r => {
-      const hrs = dailyHrs(r);
-      if(hrs !== null) periodTotal += hrs;
-      const today = r.date === card.today;
-      return `<div class="tc-row${today?" tc-today":""}">
-        <div class="tc-day-hdr">
-          <span class="tc-date">${fmtDate(r.date)}</span>
-          <span class="tc-day-hrs">${hrs!==null ? hrs+"h" : (r.clockIn?"In progress":"—")}</span>
-        </div>
-        <div>
-          ${r.clockIn  ?`<div class="tc-punch"><span class="tc-punch-lbl">Clock In</span><span class="tc-punch-val">${fmtTime(r.clockIn)}</span></div>`:""}
-          ${r.lunchOut ?`<div class="tc-punch"><span class="tc-punch-lbl">Lunch Out</span><span class="tc-punch-val">${fmtTime(r.lunchOut)}</span></div>`:""}
-          ${r.lunchIn  ?`<div class="tc-punch"><span class="tc-punch-lbl">Lunch In</span><span class="tc-punch-val">${fmtTime(r.lunchIn)}</span></div>`:""}
-          ${r.clockOut ?`<div class="tc-punch"><span class="tc-punch-lbl">Clock Out</span><span class="tc-punch-val">${fmtTime(r.clockOut)}</span></div>`:""}
-          ${!r.clockIn ?`<div class="tc-punch-empty">No punches recorded</div>`:""}
-        </div>
-      </div>`;
-    }).join("");
-    rowsHtml += `<div class="tc-period-total">
-      <span>Period Total</span>
-      <span class="tc-total-hrs">${periodTotal.toFixed(2)} hrs</span>
-    </div>`;
+  let rows="";
+  if(card.rows&&card.rows.length) {
+    rows=card.rows.map(r=>`<div class="tc-row">
+      <div class="tc-date">${r.date||"—"}</div>
+      <div class="tc-punches">
+        ${r.clockIn?`<span class="punch-time">In: ${r.clockIn}</span><br>`:""}
+        ${r.lunchOut?`<span class="punch-time">Lunch out: ${r.lunchOut}</span><br>`:""}
+        ${r.lunchIn?`<span class="punch-time">Lunch in: ${r.lunchIn}</span><br>`:""}
+        ${r.clockOut?`<span class="punch-time">Out: ${r.clockOut}</span>`:""}
+      </div>
+      <div class="tc-hrs">${r.totalHrs||""}</div>
+    </div>`).join("");
   } else {
-    rowsHtml = `<div class="empty">No punches this pay period yet.</div>`;
+    rows=`<div class="empty">No punches this pay period yet.</div>`;
   }
-
-  const periodLbl = card.periodStart
-    ? `${fmtDate(card.periodStart)} — Mon`
-    : "Current pay period";
 
   return `<div class="tc-section">
     <div class="tc-title">${emp?.name||""}</div>
     <div class="tc-actions">
-      <button class="tc-action-btn in"    onclick="doPunch('in')"        ${!canIn    ?"disabled":""}>🟢 Clock In</button>
+      <button class="tc-action-btn in"  onclick="doPunch('in')"       ${!canIn?"disabled":""}>🟢 Clock In</button>
       <button class="tc-action-btn lunch" onclick="doPunch('lunch_out')" ${!canLunchO?"disabled":""}>🟡 Lunch Out</button>
       <button class="tc-action-btn lunch" onclick="doPunch('lunch_in')"  ${!canLunchI?"disabled":""}>🟡 Lunch In</button>
-      <button class="tc-action-btn out"   onclick="doPunch('out')"       ${!canOut   ?"disabled":""}>🔴 Clock Out</button>
+      <button class="tc-action-btn out"  onclick="doPunch('out')"       ${!canOut?"disabled":""}>🔴 Clock Out</button>
     </div>
     <button class="timeoff-btn" onclick="openTimeOff()">📅 Request Time Off</button>
     <div class="tc-card">
       <div class="tc-card-hdr">
-        <span class="name">Pay Period Time Card</span>
-        <span class="period">${periodLbl}</span>
+        <span class="name">This Week's Time Card</span>
+        <span class="period">Current pay period</span>
       </div>
-      ${rowsHtml}
+      ${rows}
     </div>
     <button class="timeoff-btn" onclick="tcStep='employees';tcPin='';tcEmployee=null;tcTimeCard=null;renderTimeClock()">← Switch Employee</button>
   </div>`;
@@ -2114,7 +1546,7 @@ function openDesktopView(view) {
   const fs=document.getElementById("desk-fullscreen");
   const title=document.getElementById("desk-fs-title");
   fs.classList.add("on");
-  const titles={labels:"Labels",jugs:"Jugs & Caps",bags:"Plastic Bags",boxes:"Boxes",pallets:"Pallets Available",timeclock:"Time Sheet",orders:"Bo Order Request",log:"Activity Log",freightIn:"Freight Incoming",freightOut:"Freight Outgoing"};
+  const titles={labels:"Labels",jugs:"Jugs & Caps",bags:"Plastic Bags",boxes:"Boxes",pallets:"Pallets",timeclock:"Time Sheet",orders:"Bo Order Request",log:"Activity Log"};
   title.textContent=titles[view]||view;
   renderDesktopView(view);
   startDeskTimeout();
@@ -2153,7 +1585,7 @@ function renderDesktopView(view) {
   } else if(view==="pallets") {
     const items=data.pallets||[];
     html=`<div style="max-width:800px">
-      <div class="sh">Pallets Available</div>
+      <div class="sh">Pallets On Hand</div>
       <div class="card">${items.map(p=>palletItemHTML(p)).join("")}</div>
       ${role==="admin"?`<div class="aform"><h3>Add Product</h3><div class="ff"><label>Product name</label><input id="pal-name" placeholder="Product name"></div><div class="frow"><div class="ff"><label>Pallets</label><input id="pal-qty" type="number" min="0" placeholder="0"></div><div class="ff"><label>Total units</label><input id="pal-units" type="number" min="0" placeholder="0"></div></div><button class="badd" onclick="addPalletAction()">Add Product</button></div>`:""}
     </div>`;
@@ -2181,41 +1613,6 @@ function renderDesktopView(view) {
       </div>
       ${pending.length?`<div class="sh">Pending (${pending.length})</div><div class="pending-list card">${pending.map(o=>`<div class="pending-item"><div><div class="pending-name">${o.itemName}</div><div class="pending-qty">Qty: ${o.qty}${o.note?" · "+o.note:""}</div></div>${o.url?`<a class="amazon-link" href="${o.url}" target="_blank">View →</a>`:""}<button class="barr" onclick="markArrived(${o.row})">✓ Arrived</button></div>`).join("")}</div>`:""}
     </div>`;
-  } else if(view==="freightIn") {
-    const pending = data.freightIn||[];
-    const rows = pending.length ? pending.map(f=>`
-      <div class="freight-row">
-        <div class="freight-info">
-          <div class="freight-carrier">${esc(f.carrier)}</div>
-          <div class="freight-items">${esc(f.items)}</div>
-          <div class="freight-meta">
-            ${f.expectedDate?`<div class="freight-meta-item"><div class="freight-meta-lbl">Expected</div><div class="freight-meta-val">${esc(f.expectedDate)}</div></div>`:""}
-            ${f.dateEntered?`<div class="freight-meta-item"><div class="freight-meta-lbl">Date Entered</div><div class="freight-meta-val">${esc(f.dateEntered)}</div></div>`:""}
-            ${f.notes?`<div class="freight-meta-item"><div class="freight-meta-lbl">Notes</div><div class="freight-meta-val">${esc(f.notes)}</div></div>`:""}
-          </div>
-        </div>
-        <button class="freight-btn" ontouchstart="" onclick="markFreightReceived(${f.row})">✓ Received</button>
-      </div>`).join("") : `<div class="freight-empty">No pending incoming freight.</div>`;
-    html=`<div style="max-width:900px"><div class="sh">Freight Incoming</div><div class="freight-list">${rows}</div></div>`;
-
-  } else if(view==="freightOut") {
-    const pendingOut = data.freightOut||[];
-    const rowsOut = pendingOut.length ? pendingOut.map(f=>`
-      <div class="freight-row">
-        <div class="freight-info">
-          <div class="freight-carrier">${esc(f.carrier)}</div>
-          <div class="freight-items">${esc(f.items)}</div>
-          <div class="freight-meta">
-            ${f.expectedArrival?`<div class="freight-meta-item"><div class="freight-meta-lbl">Expected Arrival</div><div class="freight-meta-val">${esc(f.expectedArrival)}</div></div>`:""}
-            ${f.estimatedTime?`<div class="freight-meta-item"><div class="freight-meta-lbl">Est. Time</div><div class="freight-meta-val">${esc(f.estimatedTime)}</div></div>`:""}
-            ${f.pobol?`<div class="freight-meta-item"><div class="freight-meta-lbl">PO / BOL</div><div class="freight-meta-val">${esc(f.pobol)}</div></div>`:""}
-            ${f.notes?`<div class="freight-meta-item"><div class="freight-meta-lbl">Notes</div><div class="freight-meta-val">${esc(f.notes)}</div></div>`:""}
-          </div>
-        </div>
-        <button class="freight-btn" ontouchstart="" onclick="markFreightLoaded(${f.row})">✓ Loaded</button>
-      </div>`).join("") : `<div class="freight-empty">No pending outgoing freight.</div>`;
-    html=`<div style="max-width:900px"><div class="sh">Freight Outgoing</div><div class="freight-list">${rowsOut}</div></div>`;
-
   } else if(view==="log") {
     activePage="log";
     const today=new Date(); today.setHours(0,0,0,0);
@@ -2265,247 +1662,102 @@ function updateDeskPendingBadge() {
     badge.textContent=pending+" PENDING";
     badge.style.display=pending>0?"block":"none";
   }
-
-  // Freight tiles — date at top, first 3 shipments as live mini-list
-  const fiItems  = data.freightIn  || [];
-  const foItems  = data.freightOut || [];
-  const today    = new Date().toLocaleDateString('en-US',
-    {weekday:'short', month:'short', day:'numeric', year:'numeric'});
-
-  function buildFreightList(items, type) {
-    if(!items.length) return '<div class="dft-empty">No pending shipments</div>';
-    return items.slice(0,3).map(f=>`<div class="dft-item">
-      <div class="dft-item-carrier">${esc(f.carrier)}</div>
-      <div class="dft-item-detail">${esc(f.items||'')}</div>
-      <div class="dft-item-date">${esc(
-        type==='in'
-          ? (f.expectedDate||'')
-          : (f.expectedArrival||(f.pobol?'PO: '+f.pobol:''))
-      )}</div>
-    </div>`).join('');
-  }
-
-  const fiPreview = document.getElementById('freight-in-preview');
-  const foPreview = document.getElementById('freight-out-preview');
-  const fiMore    = document.getElementById('freight-in-more');
-  const foMore    = document.getElementById('freight-out-more');
-  const fiBadge   = document.getElementById('freight-in-badge');
-  const foBadge   = document.getElementById('freight-out-badge');
-  const fiDate    = document.getElementById('freight-in-date');
-  const foDate    = document.getElementById('freight-out-date');
-
-  if(fiDate)    fiDate.textContent  = today;
-  if(foDate)    foDate.textContent  = today;
-  if(fiPreview) fiPreview.innerHTML = buildFreightList(fiItems, 'in');
-  if(foPreview) foPreview.innerHTML = buildFreightList(foItems, 'out');
-  if(fiMore)    fiMore.textContent  = fiItems.length > 3 ? '+ '+(fiItems.length-3)+' more — tap to view all' : (fiItems.length ? 'Tap for full details →' : '');
-  if(foMore)    foMore.textContent  = foItems.length > 3 ? '+ '+(foItems.length-3)+' more — tap to view all' : (foItems.length ? 'Tap for full details →' : '');
-  if(fiBadge){ fiBadge.textContent=fiItems.length||''; fiBadge.style.display=fiItems.length?'':'none'; }
-  if(foBadge){ foBadge.textContent=foItems.length||''; foBadge.style.display=foItems.length?'':'none'; }
-
 }
 
 // ═══════════════════════════════════════════════════════════
 //  INLINE EDIT (tap qty)
 // ═══════════════════════════════════════════════════════════
 function startEdit(dataKey, row, sheetName, current) {
-  // Open the in-app numeric keypad — works on Mac Mini touchscreen, iPad, and mouse/keyboard
-  const arr = getDataArr(dataKey);
-  const item = arr.find(i => i.row === row);
-  const label = (item ? item.name : dataKey).toUpperCase();
-  openNumpad(label, current, async (val) => {
-    // Update local state immediately
-    if(item) item.qty = val;
-    renderPage(); if(deskView) renderDesktopView(deskView);
-    if(!cfg()) return;
-    beginSave();
-    syncStatus("busy","Saving…");
-    try {
-      const r = await api({action:"setInventoryQty", sheet:sheetName, row, qty:val});
-      if(r?.ok) { if(typeof r.newQty==="number" && item) item.qty=r.newQty; syncStatus("ok","Saved ✓"); }
-      else syncStatus("err","Save error: "+(r?.error||""));
-      renderPage(); if(deskView) renderDesktopView(deskView);
-    } catch(e) { syncStatus("err","Save failed"); }
-    finally { endSave(); }
-  });
+  const id=`qv-${dataKey}-${row}`;
+  const el=document.getElementById(id);
+  if(el) {
+    el.outerHTML=`<input class="qinput" id="qi-${dataKey}-${row}" type="number" inputmode="numeric" value="${current}" onblur="commitEdit('${dataKey}',${row},'${sheetName}')" onkeydown="if(event.key==='Enter')this.blur()">`;
+    setTimeout(()=>{const i=document.getElementById(`qi-${dataKey}-${row}`);if(i){i.focus();i.select();}},30);
+  }
 }
-
 async function commitEdit(dataKey, row, sheetName) {
-  const el = document.getElementById(`qi-${dataKey}-${row}`);
+  const el=document.getElementById(`qi-${dataKey}-${row}`);
   if(!el) return;
-  const val = Math.max(0, parseInt(el.value) || 0);
-  const arr = getDataArr(dataKey);
-  const item = arr.find(i => i.row === row);
-  console.log("[EDIT] commitEdit", {dataKey, row, sheetName, val, itemFound: !!item});
-  if(item) item.qty = val;
+  const val=Math.max(0,parseInt(el.value)||0);
+  const arr=getDataArr(dataKey);
+  const item=arr?.find(i=>i.row===row);
+  console.log("[EDIT] dataKey="+dataKey+" row="+row+" newQty="+val+" itemFound="+(!!item));
+  if(item) item.qty=val;
   renderPage(); if(deskView) renderDesktopView(deskView);
   if(!cfg()) return;
   syncStatus("busy","Saving…");
   try {
-    // Backend determines column — do not pass col from frontend
-    const r = await api({action:"setInventoryQty", sheet:sheetName, row, qty:val});
-    console.log("[EDIT] server response:", r);
-    if(r?.ok) {
-      if(typeof r.newQty==="number" && item) item.qty=r.newQty;
-      syncStatus("ok","Saved ✓");
-    } else {
-      syncStatus("err","Save error: "+(r?.error||"unknown"));
-    }
-  } catch(e) { console.error("[EDIT] exception:", e); syncStatus("err","Save failed"); }
+    console.log("[EDIT] setQtyDirect sheet="+sheetName+" row="+row+" qty="+val);
+    await api({action:"setQtyDirect",sheet:sheetName,row,qty:val}); // col not passed; Apps Script picks correct column
+    syncStatus("ok","Saved ✓");
+  }
+  catch(e){ syncStatus("err","Save failed"); }
 }
 
 function editPallet(row, current) {
-  const item = data.pallets?.find(p => p.row === row);
-  const label = (item ? item.name : 'PALLETS').toUpperCase() + ' — PALLET COUNT';
-  openNumpad(label, current, async (val) => {
-    if(!item) return;
-    item.pallets = val;                 // units column is never modified
-    markEdit();
-    renderPallets(); if(deskView==="pallets") renderDesktopView("pallets");
-    if(!cfg()) return;
-    beginSave();
-    syncStatus("busy","Saving…");
-    try {
-      const r = await api({action:"setPalletCount", row, pallets:val});
-      console.log("[PALLET] keypad row", row, "sent pallets=", val, "→", r);
-      if(r?.ok) {
-        item.pallets = r.pallets;
-        renderPallets(); if(deskView==="pallets") renderDesktopView("pallets");
-        syncStatus("ok","Saved ✓");
-      } else {
-        syncStatus("err", r?.error || "Save failed");
-      }
-    } catch(e) { syncStatus("err","Save failed"); }
-    finally { endSave(); }
-  });
+  const el=document.getElementById(`pnum-${row}`);
+  if(el) {
+    el.outerHTML=`<input class="qinput" id="pi-pal-${row}" type="number" inputmode="decimal" value="${current}" style="width:60px" onblur="commitPallet(${row})" onkeydown="if(event.key==='Enter')this.blur()">`;
+    setTimeout(()=>{const i=document.getElementById(`pi-pal-${row}`);if(i){i.focus();i.select();}},30);
+  }
 }
-
 async function commitPallet(row) {
   const el=document.getElementById(`pi-pal-${row}`);
   if(!el) return;
   const val=Math.max(0,parseFloat(el.value)||0);
   const item=data.pallets?.find(p=>p.row===row);
   if(item) item.pallets=val;
-  markEdit();
   renderPage(); if(deskView==="pallets") renderDesktopView("pallets");
   if(!cfg()) return;
-  beginSave();
   syncStatus("busy","Saving…");
-  try {
-    const r = await api({action:"setPalletCount", row, pallets:val});
-    if(r?.ok){ if(item) item.pallets = r.pallets; syncStatus("ok","Saved ✓"); }
-    else syncStatus("err", r?.error || "Save failed");
-  }
+  try { await api({action:"setQtyDirect",sheet:"Pallets Available",row,qty:val,col:2}); syncStatus("ok","Saved ✓"); }
   catch(e){ syncStatus("err","Save failed"); }
-  finally { endSave(); }
 }
 
 // ═══════════════════════════════════════════════════════════
 //  QUANTITY ACTIONS
 // ═══════════════════════════════════════════════════════════
 async function chg(sheetName, dataKey, row, delta, name, size) {
-  const arr = getDataArr(dataKey);
-  console.log("[JUGS DEBUG] chg called", {sheetName, dataKey, row, delta, name, arrRows: arr.map(i=>i.row)});
-  const item = arr.find(i => i.row === row);
-  if(!item) {
-    const msg = "Item not found: dataKey=" + dataKey + " row=" + row + " (arr has rows: " + arr.map(i=>i.row).join(",") + ")";
-    console.error("[CHG]", msg);
-    toast(msg);
-    return;
+  console.log("[CHG] sheet="+sheetName+" dataKey="+dataKey+" row="+row+" delta="+delta+" name="+name);
+  const arr=getDataArr(dataKey);
+  const item=arr?.find(i=>i.row===row);
+  if(!item){
+    console.error("[CHG] Item not found. dataKey="+dataKey+" row="+row+
+      " arr keys="+(arr?arr.map(i=>i.row).join(","):"undefined"));
+    toast("Item not found — try refreshing"); return;
   }
   const oldQty = item.qty;
-  item.qty = Math.max(0, item.qty + delta);
-  console.log("[CHG]", name, ":", oldQty, "→", item.qty, "(delta", delta + ")");
-  toast((delta>0?"+ ":"− ") + Math.abs(delta).toLocaleString() + " × " + name);
-  markEdit();
+  item.qty=Math.max(0,item.qty+delta);
+  console.log("[CHG] "+name+": "+oldQty+" → "+item.qty+" (delta "+delta+")");
+  toast((delta>0?"+ ":"− ")+Math.abs(delta).toLocaleString()+" × "+name);
   renderPage(); if(deskView) renderDesktopView(deskView);
   if(!cfg()) return;
-  beginSave();
   syncStatus("busy","Saving…");
   try {
-    const r = await api({action:"updateInventoryQty", sheet:sheetName, row, delta});
-    console.log("[CHG] server response:", r);
-    if(r?.ok) { if(typeof r.newQty==="number") item.qty=r.newQty; syncStatus("ok","Saved ✓"); }
-    else syncStatus("err","Save error: "+(r?.error||"unknown"));
-    await api({action:"addLog", type:delta>0?"in":"out", name, size, qty:Math.abs(delta)});
-  } catch(e) { console.error("[CHG] exception:", e); syncStatus("err","Connection failed"); }
-  finally { endSave(); }
-}
-
-// ═══════════════════════════════════════════════════════════
-//  WRITE GUARD — prevents the 45s auto-refresh from clobbering
-//  edits that are still being saved to the sheet.
-//
-//  An Apps Script round trip takes 1-3 seconds. Without this guard the
-//  refresh timer can fire mid-save and overwrite local state with the
-//  stale server value, making a +/- change appear to "bounce back".
-// ═══════════════════════════════════════════════════════════
-let pendingSaves = 0;
-let lastEditAt   = 0;
-
-function beginSave() { pendingSaves++; lastEditAt = Date.now(); }
-function endSave()   { pendingSaves = Math.max(0, pendingSaves - 1); lastEditAt = Date.now(); }
-function markEdit()  { lastEditAt = Date.now(); }
-
-// Safe to pull fresh server data only when nothing is in flight AND the user
-// has not touched anything in the last 6 seconds.
-function safeToRefresh() {
-  return pendingSaves === 0 && (Date.now() - lastEditAt) > 6000;
-}
-
-// ── Pallet saves are DEBOUNCED ────────────────────────────────────────────
-// Five rapid +/- taps used to fire five overlapping requests that raced each
-// other, so whichever landed last won — often not the final value. Now the
-// screen updates instantly on every tap and exactly ONE save fires once the
-// tapping stops, carrying the final number.
-const palletSaveTimers = {};
-
-function schedulePalletSave(row) {
-  clearTimeout(palletSaveTimers[row]);
-  palletSaveTimers[row] = setTimeout(function() { savePalletNow(row); }, 800);
-}
-
-// Sends ONLY the pallet count. The server derives units from the stored
-// Units Per Pallet ratio and writes both cells atomically, then returns what
-// it actually wrote. The browser never calculates or sends units, so units
-// can never be written into the pallet column.
-async function savePalletNow(row) {
-  const item = data.pallets?.find(p => p.row === row);
-  if(!item) return;
-  beginSave();
-  syncStatus("busy","Saving…");
-  try {
-    const r = await api({action:"setPalletCount", row, pallets:item.pallets});
-    console.log("[PALLET] row", row, "sent pallets=", item.pallets, "→", r);
-    if(r?.ok) {
-      item.pallets = r.pallets;   // authoritative; units column is never touched
-      renderPallets(); if(deskView==="pallets") renderDesktopView("pallets");
-      syncStatus("ok","Saved ✓");
-    } else {
-      syncStatus("err", r?.error || "Save failed — try again");
-    }
-  } catch(e) {
-    console.error("[PALLET] save failed:", e);
-    syncStatus("err","Save failed");
-  } finally {
-    endSave();
-  }
+    const r=await api({action:"updateQty",sheet:sheetName,row,delta});
+    if(r?.ok){ if(typeof r.newQty==="number") item.qty=r.newQty; syncStatus("ok","Saved ✓"); }
+    else syncStatus("err","Not saved: "+(r?.error||""));
+    await api({action:"addLog",type:delta>0?"in":"out",name,size,qty:Math.abs(delta)});
+  } catch(e){ syncStatus("err","Connection failed"); }
 }
 
 async function chgPallet(row, delta) {
-  const item = data.pallets?.find(p => p.row === row);
+  const item=data.pallets?.find(p=>p.row===row);
   if(!item) return;
-
-  // Pallet count only. The units column belongs to the spreadsheet and is
-  // never modified by the app.
-  item.pallets = Math.max(0, item.pallets + delta);
-
-  toast((delta > 0 ? "Added" : "Removed") + " 1 pallet → " + item.pallets + " pallets");
-  markEdit();                                   // hold off the auto-refresh
-  renderPage(); if(deskView === "pallets") renderDesktopView("pallets");
+  // Auto-calculate units proportionally when pallets change
+  const oldPallets=item.pallets;
+  const unitsPerPallet=oldPallets>0 ? item.units/oldPallets : 0;
+  item.pallets=Math.max(0,item.pallets+delta);
+  if(unitsPerPallet>0) item.units=Math.round(item.pallets*unitsPerPallet);
+  toast((delta>0?"Added":"Removed")+" 1 pallet → "+item.pallets+" pallets remaining");
+  renderPage(); if(deskView==="pallets") renderDesktopView("pallets");
   if(!cfg()) return;
   syncStatus("busy","Saving…");
-  schedulePalletSave(row);                      // one save after tapping stops
+  try {
+    await api({action:"setQtyDirect",sheet:"Pallets Available",row,qty:item.pallets,col:2});
+    await api({action:"setQtyDirect",sheet:"Pallets Available",row,qty:item.units,col:3});
+    syncStatus("ok","Saved ✓");
+  } catch(e){ syncStatus("err","Save failed"); }
 }
 
 async function useItem(sheetName, dataKey, row, name, size) {
@@ -2703,26 +1955,17 @@ async function pinPress(k) {
   }
 }
 
-// localDateStr: LOCAL calendar date as yyyy-MM-dd.
-// Do NOT use toISOString() — that returns UTC, so any punch after ~6pm Central
-// rolls to the next calendar day and stops matching the server's row.
-function localDateStr(d) {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
-}
-
 async function doPunch(punchType) {
   const labels={in:"Clocked in",lunch_out:"Lunch started",lunch_in:"Back from lunch",out:"Clocked out"};
+  toast(`✓ ${labels[punchType]}`);
   // Always initialize if null — never let null block the clock flow
   if(!tcTimeCard) {
-    tcTimeCard={rows:[],currentStatus:"not_in",today:localDateStr(new Date())};
+    tcTimeCard={rows:[],currentStatus:"not_in",today:new Date().toISOString().slice(0,10)};
   }
   const now=new Date();
   const timeStr=now.toLocaleTimeString();
   if(!tcTimeCard.rows) tcTimeCard.rows=[];
-  const todayStr=localDateStr(now);           // local date, matches the server
+  const todayStr=now.toISOString().slice(0,10);
   let todayRow=tcTimeCard.rows.find(r=>r.date===todayStr);
   if(!todayRow){ todayRow={date:todayStr,clockIn:"",lunchOut:"",lunchIn:"",clockOut:"",totalHrs:""}; tcTimeCard.rows.push(todayRow); }
   if(punchType==="in")         { todayRow.clockIn=timeStr; tcTimeCard.currentStatus="clocked_in"; }
@@ -2730,36 +1973,8 @@ async function doPunch(punchType) {
   if(punchType==="lunch_in")   { todayRow.lunchIn=timeStr; tcTimeCard.currentStatus="clocked_in"; }
   if(punchType==="out")        { todayRow.clockOut=timeStr; tcTimeCard.currentStatus="clocked_out"; }
   renderTimeClock(); if(deskView==="timeclock") renderDesktopView("timeclock");
-  if(!cfg()) { toast(`✓ ${labels[punchType]}`); return; }
-
-  syncStatus("busy","Saving punch…");
-  try {
-    const r = await api({action:"timePunch", name:tcEmployee.name, punchType});
-    console.log("[PUNCH]", punchType, "server response:", r);
-    if(r && r.ok) {
-      toast(`✓ ${labels[punchType]}`);
-      syncStatus("ok","Saved ✓");
-      // Pull the authoritative card back from the sheet so the screen always
-      // matches what was actually stored (including calculated Total Hours).
-      try {
-        const card = await api({action:"getTimeCard", name:tcEmployee.name});
-        if(card && card.ok) {
-          tcTimeCard = card;
-          renderTimeClock();
-          if(deskView==="timeclock") renderDesktopView("timeclock");
-        }
-      } catch(e) { console.warn("[PUNCH] card refresh failed", e); }
-    } else {
-      // Surface the real reason instead of silently pretending it worked
-      const msg = (r && r.error) ? r.error : "Punch not saved — check connection";
-      toast("⚠ " + msg);
-      syncStatus("err", msg);
-    }
-  } catch(e) {
-    console.error("[PUNCH] exception:", e);
-    toast("⚠ Punch not saved — connection failed");
-    syncStatus("err","Punch failed");
-  }
+  if(!cfg()) return;
+  try { await api({action:"timePunch",name:tcEmployee.name,punchType}); } catch(e){}
 }
 
 function openTimeOff() { document.getElementById("toModal").classList.add("on"); }
@@ -2852,14 +2067,15 @@ async function markArrived(row) {
 //  HELPERS
 // ═══════════════════════════════════════════════════════════
 function getDataArr(key) {
-  const map = {
-    labels:  data.labels  || [],
-    jugs:    data.jugs    || [],   // Jugs, Caps — only key used
-    bags:    data.bags    || [],
-    boxes:   data.boxes   || [],
-    pallets: data.pallets || []
+  const map={
+    labels:   data.labels,
+    jugs:     data.jugs,
+    closures: data.jugs || data.closures, // 'closures' is an alias for 'jugs'
+    bags:     data.bags,
+    boxes:    data.boxes,
+    pallets:  data.pallets
   };
-  return map[key] || [];
+  return map[key];
 }
 function esc(s){ return (s||"").replace(/'/g,"\\'").replace(/"/g,"&quot;"); }
 function toast(msg) {
@@ -2872,81 +2088,17 @@ function toast(msg) {
 //  AUTO REFRESH (every 45s)
 // ═══════════════════════════════════════════════════════════
 setInterval(()=>{
-  if(!cfg() || !role) return;
-  // Never pull fresh data while a save is in flight or immediately after an
-  // edit — that is what caused +/- changes to bounce back to the old number.
-  if(!safeToRefresh()) {
-    console.log("[REFRESH] skipped — save in flight or recent edit");
-    return;
+  if(cfg()&&role){
+    api({action:"getAll"}).then(r=>{
+      if(r?.ok){ data=r; renderAll(); syncStatus("ok","Live · synced just now"); updateDeskPendingBadge(); }
+    }).catch(()=>{});
   }
-  api({action:"getAll"}).then(r=>{
-    if(r?.ok){
-      // Re-check: an edit may have started while this request was in flight
-      if(!safeToRefresh()) {
-        console.log("[REFRESH] discarded — user edited during fetch");
-        return;
-      }
-      data = r;
-      data.jugs       = r.jugs       || [];
-      data.freightIn  = r.freightIn  || [];
-      data.freightOut = r.freightOut || [];
-      mergeBoOrderItems();          // new Bo Order rows appear within 45s
-      renderAll();
-      syncStatus("ok","Live · synced just now");
-      updateDeskPendingBadge();
-    }
-  }).catch(()=>{});
 },45000);
 
 // ═══════════════════════════════════════════════════════════
 //  INIT
 // ═══════════════════════════════════════════════════════════
 detectLayout();
-
-// Restore login session after a browser refresh — no re-login needed on kiosk
-window.addEventListener('load', function() {
-  try {
-    const savedRole = sessionStorage.getItem('bosh_role');
-    if(savedRole && PASSWORDS[savedRole]) {
-      role = savedRole;
-      pw = PASSWORDS[savedRole];  // restore password so API calls authenticate correctly
-      document.getElementById("login").style.display = "none";
-      detectLayout();
-      applyRole();
-      loadAll();
-      if(isDesktop) { startDeskClock(); initWeather(); }
-    }
-  } catch(e) {
-    // sessionStorage unavailable (private mode etc.) — just show login normally
-    console.warn('Session restore failed:', e);
-  }
-});
 </script>
-
-<!-- In-app numeric keypad — works on Mac Mini touchscreen and all touch devices -->
-<div id="numpad-overlay">
-  <div id="numpad-box">
-    <div id="numpad-label">ENTER QUANTITY</div>
-    <div id="numpad-display">0</div>
-    <div class="numpad-grid">
-      <button class="npbtn" ontouchstart="" onclick="npPress('1')">1</button>
-      <button class="npbtn" ontouchstart="" onclick="npPress('2')">2</button>
-      <button class="npbtn" ontouchstart="" onclick="npPress('3')">3</button>
-      <button class="npbtn" ontouchstart="" onclick="npPress('4')">4</button>
-      <button class="npbtn" ontouchstart="" onclick="npPress('5')">5</button>
-      <button class="npbtn" ontouchstart="" onclick="npPress('6')">6</button>
-      <button class="npbtn" ontouchstart="" onclick="npPress('7')">7</button>
-      <button class="npbtn" ontouchstart="" onclick="npPress('8')">8</button>
-      <button class="npbtn" ontouchstart="" onclick="npPress('9')">9</button>
-      <button class="npbtn np-cancel" ontouchstart="" onclick="npCancel()">✕</button>
-      <button class="npbtn" ontouchstart="" onclick="npPress('0')">0</button>
-      <button class="npbtn np-del" ontouchstart="" onclick="npPress('⌫')">⌫</button>
-    </div>
-    <button class="npbtn np-ok" ontouchstart="" onclick="npConfirm()" style="width:100%;margin-top:10px;border-radius:12px;padding:18px">
-      ✓ &nbsp; SAVE
-    </button>
-  </div>
-</div>
-
 </body>
 </html>
